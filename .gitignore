@@ -102,6 +102,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+pupil_detec_env
 .env
 .venv
 env/
