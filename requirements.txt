@@ -2,3 +2,5 @@ torch
 pandas
 torchvision
 numpy
+ipykernel
+opencv-python
