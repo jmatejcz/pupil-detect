@@ -1,6 +1,6 @@
 import torch
 from torchvision import transforms
-from utils import get_labels_from_csv, get_frames_from_video
+from .utils import get_labels_from_csv, get_frames_from_video
 
 
 class PupilCoreDatasetCoords(torch.utils.data.Dataset):
