@@ -1,6 +1,7 @@
 import torch
 from torchvision import transforms
 from .utils import get_labels_from_csv, get_frames_from_video
+import numpy as np
 
 
 class PupilCoreDatasetCoords(torch.utils.data.Dataset):
@@ -18,13 +19,16 @@ class PupilCoreDatasetCoords(torch.utils.data.Dataset):
         self.eye1_frames = get_frames_from_video(self.eye1_video_path)
 
     def __getitem__(self, idx):
-        pupil_coords = (
-            self.eye0_labels_df.at[idx, "pupil_center_x_coord"],
-            self.eye0_labels_df.at[idx, "pupil_center_y_coord"],
+        pupil_coords = np.array(
+            [
+                self.eye0_labels_df.at[idx, "pupil_center_x_coord"],
+                self.eye0_labels_df.at[idx, "pupil_center_y_coord"],
+            ]
         )
         image = self.eye0_frames[idx]
         T = transforms.Compose([transforms.ToTensor()])
         image = T(image)
+        pupil_coords = torch.as_tensor(pupil_coords, dtype=torch.float32)
         return image, pupil_coords
 
     def __len__(self):

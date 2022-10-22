@@ -1,7 +1,8 @@
 from torchvision import models
 from torch import nn
 
-
-def PupilDetectModel():
-    model = models.segmentation.fcn_resnet50(pretrained=False, num_classes=3)
-    return model
+# TODO model do wykrywania środka źrenicy, na wyjsciu 2 pola regresji (wspolrzedne)
+class PupilDetectModel(nn.Module):
+    def __init__(self):
+        super(PupilDetectModel, self).__init__()
+        pass
