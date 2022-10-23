@@ -3,6 +3,7 @@ import copy
 import torch
 import matplotlib.pyplot as plt
 import cv2
+import numpy as np
 
 
 def train_first_model(
@@ -85,7 +86,8 @@ def train_first_model(
                 best_model_wts = copy.deepcopy(model.state_dict())
 
     time_elapsed = time.time() - since
-    print(f"Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s")
+    print(
+        f"Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s")
     print(f"Best val Acc: {best_acc:4f}")
 
     # load best model weights
@@ -173,7 +175,8 @@ def train_second_model(
             #     best_model_wts = copy.deepcopy(model.state_dict())
 
     time_elapsed = time.time() - since
-    print(f"Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s")
+    print(
+        f"Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s")
     print(f"Best val Acc: {best_acc:4f}")
 
     # load best model weights
@@ -181,7 +184,7 @@ def train_second_model(
     return model
 
 
-def visualize_model(model, num_images=6, class_to_show=None):
+def visualize_model(model, device,  dataloaders, num_images=6, class_to_show=None):
     was_training = model.training
     model.eval()
     fig = plt.figure()
@@ -216,6 +219,24 @@ def visualize_model(model, num_images=6, class_to_show=None):
                 return
 
         model.train(mode=was_training)
+
+
+def visualize_pupil(model, dataloader, device, num_images: int = 5):
+    # TODO wyswietlanie przewidzianego srodka zrenicy
+    model.eval()
+    plt.figure()
+    with torch.no_grad():
+        for i, (inputs, labels) in dataloader:
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+
+            outputs = model(inputs)
+            image = np.transpose(inputs[0].cpu().numpy(), (1, 2, 0)).copy()
+            
+            cv2.circle(image, np.array(outputs), 5, "red", 1)
+            plt.imshow(image)
+            if i >= num_images:
+                return
 
 
 def evaluate(model):
