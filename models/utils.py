@@ -86,8 +86,7 @@ def train_first_model(
                 best_model_wts = copy.deepcopy(model.state_dict())
 
     time_elapsed = time.time() - since
-    print(
-        f"Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s")
+    print(f"Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s")
     print(f"Best val Acc: {best_acc:4f}")
 
     # load best model weights
@@ -175,8 +174,7 @@ def train_second_model(
             #     best_model_wts = copy.deepcopy(model.state_dict())
 
     time_elapsed = time.time() - since
-    print(
-        f"Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s")
+    print(f"Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s")
     print(f"Best val Acc: {best_acc:4f}")
 
     # load best model weights
@@ -184,7 +182,7 @@ def train_second_model(
     return model
 
 
-def visualize_model(model, device,  dataloaders, num_images=6, class_to_show=None):
+def visualize_model(model, device, dataloaders, num_images=6, class_to_show=None):
     was_training = model.training
     model.eval()
     fig = plt.figure()
@@ -221,33 +219,15 @@ def visualize_model(model, device,  dataloaders, num_images=6, class_to_show=Non
         model.train(mode=was_training)
 
 
-def visualize_pupil(model, dataloader, device, num_images: int = 5):
-    # TODO wyswietlanie przewidzianego srodka zrenicy
+def evaluate_pupil(model, dataloaders, device):
     model.eval()
-    plt.figure()
+
     with torch.no_grad():
-        for i, (inputs, labels) in dataloader:
+        for i, (inputs, labels) in enumerate(dataloaders["test"]):
             inputs = inputs.to(device)
             labels = labels.to(device)
 
             outputs = model(inputs)
-            image = np.transpose(inputs[0].cpu().numpy(), (1, 2, 0)).copy()
-            
-            cv2.circle(image, np.array(outputs), 5, "red", 1)
-            plt.imshow(image)
-            if i >= num_images:
-                return
-
-
-def evaluate(model):
-    model.eval()
-
-    with torch.no_grad():
-        for i, (inputs, labels) in enumerate(dataloaders["val"]):
-            inputs = inputs.to(device)
-            labels = labels.to(device)
-
-            outputs = model(inputs)
-            _, preds = torch.max(outputs, 1)
-            if preds == 1:
-                pass
+            print(outputs, labels)
+            diff = (labels[0][0] - outputs[0][0], labels[0][1] - outputs[0][1])
+            print(diff)

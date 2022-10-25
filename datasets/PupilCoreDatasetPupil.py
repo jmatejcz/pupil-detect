@@ -4,7 +4,7 @@ from .utils import get_labels_from_csv, get_frames_from_video
 import numpy as np
 
 
-class PupilCoreDatasetCoords(torch.utils.data.Dataset):
+class PupilCoreDatasetPupil(torch.utils.data.Dataset):
     def __init__(
         self, eye0_video_path, eye0_labels_path, eye1_video_path, eye1_labels_path
     ) -> None:

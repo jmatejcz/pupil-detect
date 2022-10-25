@@ -5,4 +5,4 @@ from torch import nn
 class PupilDetectModel(nn.Module):
     def __init__(self):
         super(PupilDetectModel, self).__init__()
-        pass
+        self.fc = nn.Linear(in_features=512, out_features=2, dtype=torch.float32)
