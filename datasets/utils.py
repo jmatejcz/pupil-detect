@@ -24,7 +24,7 @@ def get_frames_from_video(video_path):
 
 def get_labels_from_csv(csv_path):
     df = pd.read_csv(csv_path)
-    df.drop(['p', 'w', 'h'], axis=1, inplace=True)
+    # df.drop(['p', 'w', 'h'], axis=1, inplace=True)
     opened = [1 if x>0 else 0 for x in df['x']]
     df.rename(columns={"x":"pupil_center_x_coord", "y":"pupil_center_y_coord", "a":"corneal_reflection_x_coord", "b":"corneal_reflection_y_coord"}, inplace=True)
     df['opened'] = opened
