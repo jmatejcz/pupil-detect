@@ -128,3 +128,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# created masks
+.datasets/PupilCoreDataset/created_masks/eye0/
+.datasets/PupilCoreDataset/created_masks/eye1/
+
+.datasets\PupilCoreDataset\created\masks\eye0\*
