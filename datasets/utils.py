@@ -40,3 +40,7 @@ def get_labels_from_csv(csv_path, data_len):
     )
     df["opened"] = opened
     return df
+
+
+def fit_ellipse(image, mask):
+    pass

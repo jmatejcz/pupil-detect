@@ -231,3 +231,20 @@ def evaluate_pupil(model, dataloaders, device):
             print(outputs, labels)
             diff = (labels[0][0] - outputs[0][0], labels[0][1] - outputs[0][1])
             print(diff)
+
+
+def fit_ellipse(mask):
+    ret, thresh = cv2.threshold(mask, 0.5, 1, cv2.THRESH_BINARY)
+    thresh = np.asarray(thresh, dtype=np.uint8)
+
+    countours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    print(countours)
+    cnt = [i[0] for i in countours[0]]
+    cnt = np.asarray(cnt)
+
+    return cv2.fitEllipse(cnt)
+
+
+def draw_ellipse(image, ellipse):
+    cv2.ellipse(image, ellipse, (0, 0, 255), 1)
+    return image

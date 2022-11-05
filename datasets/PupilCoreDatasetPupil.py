@@ -8,28 +8,36 @@ import os
 
 class PupilCoreDatasetPupil(torch.utils.data.Dataset):
     def __init__(
-        self, eye0_video_path, eye0_labels_path, eye1_video_path, eye1_labels_path
+        self,
+        eye0_video_path,
+        eye0_labels_path,
+        eye1_video_path,
+        eye1_labels_path,
+        dataset_len,
     ) -> None:
         super().__init__()
         self.eye0_video_path = eye0_video_path
         self.eye0_labels_path = eye0_labels_path
         self.eye1_video_path = eye1_video_path
         self.eye1_labels_path = eye1_labels_path
-        self.eye0_labels_df = get_labels_from_csv(self.eye0_labels_path)
-        self.eye0_frames = get_frames_from_video(self.eye0_video_path)
-        self.eye1_labels_df = get_labels_from_csv(self.eye1_labels_path)
-        self.eye1_frames = get_frames_from_video(self.eye1_video_path)
+        self.eye0_labels_df = get_labels_from_csv(self.eye0_labels_path, dataset_len)
+        self.eye0_frames = get_frames_from_video(self.eye0_video_path, dataset_len)
+        self.eye1_labels_df = get_labels_from_csv(self.eye1_labels_path, dataset_len)
+        self.eye1_frames = get_frames_from_video(self.eye1_video_path, dataset_len)
+        self.dataset_len = dataset_len
+        self.eye0_masks = []
+        self.eye1_masks = []
 
     def load_masks(self, eye0_path, eye1_path):
-        self.eye1_masks = []
-        self.eye0_masks = []
-        for file in os.scandir(eye0_path):
-            mask = cv2.imread(file)
-            print(mask)
+        # self.eye1_masks = []
+        # self.eye0_masks = []
+        for file in os.listdir(eye0_path)[: self.dataset_len]:
+
+            mask = cv2.imread(f"{eye0_path}/{file}", cv2.IMREAD_GRAYSCALE)
             self.eye0_masks.append(mask)
 
-        for file in os.scandir(eye1_path):
-            mask = cv2.imread(file)
+        for file in os.listdir(eye1_path)[: self.dataset_len]:
+            mask = cv2.imread(f"{eye1_path}/{file}", cv2.IMREAD_GRAYSCALE)
             self.eye1_masks.append(mask)
 
     def get_pupil_ellipse(self):
@@ -47,18 +55,20 @@ class PupilCoreDatasetPupil(torch.utils.data.Dataset):
                 int(self.eye0_labels_df.at[i, "pupil_axis_2"] // 2),
             )
             mask = np.zeros(image.shape)
-            self.eye0_masks.append(
-                cv2.ellipse(
-                    img=mask,
-                    center=pupil_center,
-                    axes=pupil_axes,
-                    angle=self.eye0_labels_df.at[i, "elipse_angle"],
-                    startAngle=0,
-                    endAngle=360,
-                    color=(255, 0, 0),
-                    thickness=-1,
-                )
+            ellipse = cv2.ellipse(
+                img=mask,
+                center=pupil_center,
+                axes=pupil_axes,
+                angle=self.eye0_labels_df.at[i, "elipse_angle"],
+                startAngle=0,
+                endAngle=360,
+                color=(255, 255, 255),
+                thickness=-1,
             )
+            ellipse = np.asarray(ellipse, dtype=np.float32)
+            ellipse = cv2.cvtColor(ellipse, cv2.COLOR_RGB2GRAY)
+            ret, b_ellipse = cv2.threshold(ellipse, 1, 1, cv2.THRESH_BINARY)
+            self.eye0_masks.append(b_ellipse)
 
         for i, image in enumerate(self.eye1_frames):
             pupil_center = np.array(
@@ -72,18 +82,20 @@ class PupilCoreDatasetPupil(torch.utils.data.Dataset):
                 int(self.eye1_labels_df.at[i, "pupil_axis_2"] // 2),
             )
             mask = np.zeros(image.shape)
-            self.eye1_masks.append(
-                cv2.ellipse(
-                    img=mask,
-                    center=pupil_center,
-                    axes=pupil_axes,
-                    angle=self.eye1_labels_df.at[i, "elipse_angle"],
-                    startAngle=0,
-                    endAngle=360,
-                    color=(255, 0, 0),
-                    thickness=-1,
-                )
+            ellipse = cv2.ellipse(
+                img=mask,
+                center=pupil_center,
+                axes=pupil_axes,
+                angle=self.eye1_labels_df.at[i, "elipse_angle"],
+                startAngle=0,
+                endAngle=360,
+                color=(255, 255, 255),
+                thickness=-1,
             )
+            ellipse = np.asarray(ellipse, dtype=np.float32)
+            ellipse = cv2.cvtColor(ellipse, cv2.COLOR_RGB2GRAY)
+            ret, b_ellipse = cv2.threshold(ellipse, 1, 1, cv2.THRESH_BINARY)
+            self.eye1_masks.append(b_ellipse)
 
     def save_masks(self, path):
         for i, mask in enumerate(self.eye0_masks):
