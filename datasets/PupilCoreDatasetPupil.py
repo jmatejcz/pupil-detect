@@ -6,7 +6,7 @@ import cv2
 import os
 
 
-class PupilCoreDatasetPupil(torch.utils.data.Dataset):
+class PupilCoreDataset(torch.utils.data.Dataset):
     def __init__(
         self,
         eye0_video_path,
@@ -29,15 +29,13 @@ class PupilCoreDatasetPupil(torch.utils.data.Dataset):
         self.eye1_masks = []
 
     def load_masks(self, eye0_path, eye1_path):
-        # self.eye1_masks = []
-        # self.eye0_masks = []
-        for file in os.listdir(eye0_path)[: self.dataset_len]:
 
-            mask = cv2.imread(f"{eye0_path}/{file}", cv2.IMREAD_GRAYSCALE)
+        for i in range(self.dataset_len):
+
+            mask = cv2.imread(f"{eye0_path}/{i}.png", cv2.IMREAD_GRAYSCALE)
             self.eye0_masks.append(mask)
 
-        for file in os.listdir(eye1_path)[: self.dataset_len]:
-            mask = cv2.imread(f"{eye1_path}/{file}", cv2.IMREAD_GRAYSCALE)
+            mask = cv2.imread(f"{eye1_path}/{i}.png", cv2.IMREAD_GRAYSCALE)
             self.eye1_masks.append(mask)
 
     def get_pupil_ellipse(self):
@@ -67,7 +65,9 @@ class PupilCoreDatasetPupil(torch.utils.data.Dataset):
             )
             ellipse = np.asarray(ellipse, dtype=np.float32)
             ellipse = cv2.cvtColor(ellipse, cv2.COLOR_RGB2GRAY)
-            ret, b_ellipse = cv2.threshold(ellipse, 1, 1, cv2.THRESH_BINARY)
+            ret, b_ellipse = cv2.threshold(ellipse, 1, 255, cv2.THRESH_BINARY)
+            b_ellipse = b_ellipse.reshape(b_ellipse.shape + (1,))
+
             self.eye0_masks.append(b_ellipse)
 
         for i, image in enumerate(self.eye1_frames):
@@ -94,7 +94,8 @@ class PupilCoreDatasetPupil(torch.utils.data.Dataset):
             )
             ellipse = np.asarray(ellipse, dtype=np.float32)
             ellipse = cv2.cvtColor(ellipse, cv2.COLOR_RGB2GRAY)
-            ret, b_ellipse = cv2.threshold(ellipse, 1, 1, cv2.THRESH_BINARY)
+            ret, b_ellipse = cv2.threshold(ellipse, 1, 255, cv2.THRESH_BINARY)
+            b_ellipse = b_ellipse.reshape(b_ellipse.shape + (1,))
             self.eye1_masks.append(b_ellipse)
 
     def save_masks(self, path):
@@ -110,12 +111,12 @@ class PupilCoreDatasetPupil(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         image = self.eye0_frames[idx]
         pupil_mask = self.eye0_masks[idx]
-
+        opened = self.eye0_labels_df.at[idx, "opened"]
         T = transforms.Compose([transforms.ToTensor()])
         image = T(image)
         pupil_mask = T(pupil_mask)
 
-        return image, pupil_mask
+        return (image, pupil_mask, opened)
 
     # ================ for pupil core =======================
     # def __getitem__(self, idx):
