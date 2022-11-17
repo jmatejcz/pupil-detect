@@ -7,6 +7,17 @@ import os
 
 
 class PupilCoreDataset(torch.utils.data.Dataset):
+    """
+    Generated with:
+    https://github.com/pupil-labs/pupil
+
+    camera_matrix =
+        [140.0, 0.0, 96],
+        [0.0, 140.0, 96],
+        [0.0, 0.0, 1.0],
+        ??? # TODO verify
+    """
+
     def __init__(
         self,
         eye0_video_path,
@@ -27,6 +38,7 @@ class PupilCoreDataset(torch.utils.data.Dataset):
         self.dataset_len = dataset_len
         self.eye0_masks = []
         self.eye1_masks = []
+        self.focal_len = 140  # in mm
 
     def load_masks(self, eye0_path, eye1_path):
 
