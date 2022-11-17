@@ -1,5 +1,7 @@
 import numpy as np
 
+# TODO Z ZRP STRONKA GURU OF THE WEEK ZADANIA
+
 
 def get_general_equation_ellipse_coefficients(x, y, a, b, rot_angle):
     """https://en.wikipedia.org/wiki/Ellipse#General_ellipse
@@ -85,9 +87,11 @@ def unproject_eye(camera_vertex, ellipse, radius=None):
     # step 3)
     # Reduction of the equation of a cone
     # (10) in algorithm paper
-    get_lamba_coefficients(a, b, c, f, g, h)
-    lamb_coefficient_1 = 1
-    lamb_coefficient_2 = -(a+b+c)
-    lamb_coefficient_3 = (b*c + c*a + a*b - np.power(f,2) - np.power(g,2) - np.power(h,2))
-    lamb_coefficient_4 = -(a*b*c + 2*f*g*h - a*np.power(f,2) - b*np.power(g,2) - c*np.power(h,2))
+    # coef1, coef2, coef3, coef4 = get_lamba_coefficients(a, b, c, f, g, h)
+    lambda_coefficient_1 = 1
+    lambda_coefficient_2 = -(a+b+c)
+    lambda_coefficient_3 = (b*c + c*a + a*b - np.power(f,2) - np.power(g,2) - np.power(h,2))
+    lambda_coefficient_4 = -(a*b*c + 2*f*g*h - a*np.power(f,2) - b*np.power(g,2) - c*np.power(h,2))
+
+    # now we find the roots of equation with above coefficient
     lamb1, lamb2, lamb3 = np.roots([lamb_co1, lamb_co2, lamb_co3, lamb_co4])
