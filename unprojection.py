@@ -94,6 +94,34 @@ def gen_rotation_transofrm_coefficents(_lambda, a, b, g, f, h):
     return l, m, n
 
 
+def calT3(l, m ,n ):
+    lm_sqrt = np.sqrt((l**2)+(m**2))
+    T3 = np.array([-m/lm_sqrt, -(l*n)/lm_sqrt, l, 0,
+                       l/lm_sqrt, -(m*n)/lm_sqrt, m, 0,
+                       0, lm_sqrt, n, 0,
+                       0, 0, 0, 1]).reshape(4,4)
+    return T3
+
+
+def calABCD(T3, lambda1, lambda2, lambda3):
+    li, mi, ni = T3[0:3,0], T3[0:3,1], T3[0:3,2]
+    lamb_array = np.array([lambda1, lambda2, lambda3])
+    A = np.dot(np.power(li,2), lamb_array)
+    B = np.sum(li*ni*lamb_array)
+    C = np.sum(mi*ni*lamb_array)
+    D = np.dot(np.power(ni,2), lamb_array)
+    return A,B,C,D
+
+
+def calXYZ_perfect(A,B,C,D, r):
+    
+    Z = (A*r)/np.sqrt((B**2)+(C**2)-A*D)
+    X = (-B/A)*Z
+    Y = (-C/A)*Z
+    center = np.array([X,Y,Z,1]).reshape(4,1)
+    return center
+
+
 def unproject_eye(camera_vertex, ellipse, radius=None):
     """_based on Three-dimensional location estimation of circular features for machine vision by
     R. Safaee-Rad; I. Tchoukanov; K.C. Smith; B. Benhabib -> https://ieeexplore.ieee.org/document/163786
@@ -176,5 +204,48 @@ def unproject_eye(camera_vertex, ellipse, radius=None):
 
     # applying the transformation to the surface's normal vector
     # it gives as normal vector with respect to the camera frame
+    
     normal_cam_pos = np.dot(T1, normal_vec_pos)
     normal_cam_neg = np.dot(T1, normal_vec_neg)
+
+
+    li, mi, ni = T1[0,0:3], T1[1,0:3], T1[2,0:3]
+    # if np.cross(li, mi).dot(ni) < 0:
+    #     li = -li
+    #     mi = -mi
+    #     ni = -ni ??? nie dziala czemus
+
+    T1[0,0:3], T1[1,0:3], T1[2,0:3] = li, mi, ni
+
+    T2 = np.eye(4)
+    T2[0:3,3] = -(u*li+v*mi+w*ni)/np.array([lambda1, lambda2, lambda3])
+
+    # TODO o co tu chodzi 
+    T3_pos = calT3(l[0], m[0], n[0])
+    T3_neg = calT3(l[1], m[1], n[1])
+
+    #
+    # algorith paper (39)
+    A_pos, B_pos, C_pos, D_pos = calABCD(T3_pos, lambda1, lambda2, lambda3)
+    A_neg, B_neg, C_neg, D_neg = calABCD(T3_neg, lambda1, lambda2, lambda3)
+
+    # transformation between iamge frame and camera frame -> T0
+    T0 = np.eye(4)
+    T0[2, 3] = camera_vertex[2] # focal length
+
+    # 
+    # algorithm paper (41)
+    center_pos = calXYZ_perfect(A_pos, B_pos, C_pos, D_pos, radius)
+    center_neg = calXYZ_perfect(A_neg, B_neg, C_neg, D_neg, radius)
+
+    # From perfect frame to camera frame
+    true_center_pos = np.matmul(T0,np.matmul(T1,np.matmul(T2,np.matmul(T3_pos,center_pos))))
+    if true_center_pos[2] <0:
+        center_pos[0:3] = -center_pos[0:3]
+        true_center_pos = np.matmul(T0,np.matmul(T1,np.matmul(T2,np.matmul(T3_pos,center_pos))))
+    true_center_neg = np.matmul(T0,np.matmul(T1,np.matmul(T2,np.matmul(T3_neg,center_neg))))
+    if true_center_neg[2] <0:
+        center_neg[0:3] = -center_neg[0:3]
+        true_center_neg = np.matmul(T0,np.matmul(T1,np.matmul(T2,np.matmul(T3_neg,center_neg))))
+
+    return normal_cam_pos[0:3], normal_cam_neg[0:3], true_center_pos[0:3], true_center_neg[0:3]
