@@ -1,0 +1,26 @@
+
+TWO CIRCLE UNPROJECTION
+
+uprojection of an ellipse -> find a circle whose projection is a given ellipse.
+przestrzen wszystkich możliwych projekcji koła źrenicy można przybliżyć jako stożek z kołem źrenicy w podstawie i ogniskową kamery w wierzchołku.
+Wtedy nasza elipsa to przecięcie stożka z powierzchnią obrazu
+
+To oznacza, że możemy zrekontruować stożek z podstawą jako elipsa źrenicy, wtedy kołowe przecięcie tego stożka to będzie nasze koło elipsy
+natomiast nie znajac rozmiaru źrenicy nie jestesmy w stanie jednoznacznie okreslic jak daleko te koło jest od kamery 
+Chwilowo zakładamy stały promień źrenicy(np. 2 mm).
+Po tym powstają nam 2 rozwiązania o takich samych rozmiarach, symetryczne wzdłuż głownej osi ellipsy, z rozwiązania równania kwadratowego (p+, n+ r) , (p-, n-, r)
+Na ten moment nie jesteśmy w stanie powiedzieć które jest poprawne.
+
+MODELOWANIE
+
+Modelujemy źrenice jako dysk styczny do sferycznej gałki ocznej, 
+wtedy wzork to wektor normalny dysku
+
+SPHERE CENTRE ESTIMATE
+
+Mamy koło źrenicy dla każdego obrazka, chcemy teraz znaleźć taką sferę, która jest styczna do każdego koła
+Nie mozemy tego znaleźć  w 3D ponieważ nie znam rzeczywistego promienia koła źrenicy i nie wiemy które z 2 rozwiązań jest dobre
+Więc przeanalizujemy to w 2D przestrzeni obrazu.
+Środek naszej gałki ocznej to będzie przęciecie wektorów normalnych naszych dysków (źrenic)
+2 wktory normalne z naszych 2 rozwiązań są w 2D równoległe więc możemy wziąc którykolowiek z nich.
+
