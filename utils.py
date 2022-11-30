@@ -87,3 +87,20 @@ def fit_ellipse(mask):
 def draw_ellipse(image, ellipse):
     cv2.ellipse(image, ellipse, (0, 0, 255), 1)
     return image
+
+
+def get_pupil_radius_from_images(masks):
+    """Get mean pupil radius in pixel from masks
+    Masks should be with pupil looking straight to the camera
+
+    :param images: _description_
+    :type images: _type_
+    """
+    axis_means = []
+    for mask in masks:
+        ellipse = fit_ellipse(mask)
+        print(ellipse)
+        axis = ellipse[1]
+        axis_means.append(np.mean(axis))
+
+    return np.mean(axis_means)

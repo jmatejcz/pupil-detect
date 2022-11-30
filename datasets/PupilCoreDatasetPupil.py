@@ -38,7 +38,7 @@ class PupilCoreDataset(torch.utils.data.Dataset):
         self.dataset_len = dataset_len
         self.eye0_masks = []
         self.eye1_masks = []
-        self.focal_len = 140  # in mm
+        self.focal_len = 140  # in pixels?
 
     def load_masks(self, eye0_path, eye1_path):
 
