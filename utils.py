@@ -89,18 +89,34 @@ def draw_ellipse(image, ellipse):
     return image
 
 
-def get_pupil_radius_from_images(masks):
+def get_pupil_radius_from_masks(masks):
     """Get mean pupil radius in pixel from masks
     Masks should be with pupil looking straight to the camera
 
     :param images: _description_
     :type images: _type_
     """
-    axis_means = []
+    axis_diffs = []
     for mask in masks:
         ellipse = fit_ellipse(mask)
         print(ellipse)
         axis = ellipse[1]
-        axis_means.append(np.mean(axis))
+        axis_diffs.append(axis[1]-axis[0])
+
 
     return np.mean(axis_means)
+
+
+
+def get_masks_for_pupil_radius_approx(masks):
+    """Search for such masks where pupil is close to cicrle
+    this means both axis are similar length
+    these masks will be used to approx pupil radius
+    
+
+    :param masks: _description_
+    :type masks: _type_
+    """
+    for mask in masks:
+        ellipse = fit_ellipse()
+        
