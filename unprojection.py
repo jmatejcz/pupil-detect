@@ -18,7 +18,7 @@ def get_general_equation_ellipse_coefficients(x, y, a, b, rot_angle):
     :rtype: _type_
     """
     A = (a**2) * (np.sin(rot_angle) ** 2) + (b**2) * (np.cos(rot_angle) ** 2)
-    B = 2 * A((b**2) - (a**2)) * np.sin(rot_angle) * np.cos(rot_angle)
+    B = 2 * ((b**2) - (a**2)) * np.sin(rot_angle) * np.cos(rot_angle)
     C = (a**2) * (np.cos(rot_angle) ** 2) + (b**2) * (np.sin(rot_angle) ** 2)
     D = -2 * A * x - B * y
     E = -B * x - 2 * C * y
@@ -94,10 +94,26 @@ def gen_rotation_transofrm_coefficents(_lambda, a, b, g, f, h):
 
 def calT3(l, m, n):
     lm_sqrt = np.sqrt((l**2) + (m**2))
-    T3 = np.array([-m/lm_sqrt, -(l*n)/lm_sqrt, l, 0,
-                    l/lm_sqrt, -(m*n)/lm_sqrt, m, 0,
-                    0,         lm_sqrt,        n, 0,
-                    0,         0,              0, 1]).reshape(4,4)
+    T3 = np.array(
+        [
+            -m / lm_sqrt,
+            -(l * n) / lm_sqrt,
+            l,
+            0,
+            l / lm_sqrt,
+            -(m * n) / lm_sqrt,
+            m,
+            0,
+            0,
+            lm_sqrt,
+            n,
+            0,
+            0,
+            0,
+            0,
+            1,
+        ]
+    ).reshape(4, 4)
     return T3
 
 
@@ -130,7 +146,10 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
         where x,y -> ellipse center, a,b -> axis, rot_angle -> rotation angle
 
     """
-    A, B, C, D, E, F = get_general_equation_ellipse_coefficients(*ellipse)
+    x, y = ellipse[0]
+    a, b = ellipse[1]
+
+    A, B, C, D, E, F = get_general_equation_ellipse_coefficients(x, y, a, b, ellipse[2])
 
     # step 1)
     # (1) in algorithm paper

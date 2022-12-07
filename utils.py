@@ -76,12 +76,13 @@ def fit_ellipse(mask):
 
     countours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # print(countours)
-    if len(countours) > 0:
+    try:
+        # if len(countours) > 0:
         cnt = [i[0] for i in countours[0]]
         cnt = np.asarray(cnt)
         return cv2.fitEllipse(cnt)
-    else:
-        print("No contours found")
+    except Exception as err:
+        pass
 
 
 def draw_ellipse(image, ellipse):
@@ -96,27 +97,46 @@ def get_pupil_radius_from_masks(masks):
     :param images: _description_
     :type images: _type_
     """
-    axis_diffs = []
+    ellipses = []
     for mask in masks:
         ellipse = fit_ellipse(mask)
-        print(ellipse)
-        axis = ellipse[1]
-        axis_diffs.append(axis[1]-axis[0])
+        if ellipse:
+            axis = ellipse[1]
+            ellipses.append((ellipse, axis[1] - axis[0]))
+
+    sorted_ = sorted(ellipses, key=lambda x: x[1])[:50]
+    radiuses = []
+    for el in sorted_:
+        radiuses.append(el[0][1][0] / 2)
+
+    return np.mean(radiuses)
+    # return sorted_
 
 
-    return np.mean(axis_means)
+def calc_intersection(normal_vectors_2D, centers_2D):
+    """Calculate point nearest to all the lines, starting in centers
 
-
-
-def get_masks_for_pupil_radius_approx(masks):
-    """Search for such masks where pupil is close to cicrle
-    this means both axis are similar length
-    these masks will be used to approx pupil radius
-    
-
-    :param masks: _description_
-    :type masks: _type_
+    :param normal_vectors_2D: _description_
+    :type normal_vectors_2D: _type_
+    :param centers_2D: _description_
+    :type centers_2D: _type_
     """
-    for mask in masks:
-        ellipse = fit_ellipse()
-        
+    R_sum = 0
+    S_sum = 0
+    print(normal_vectors_2D[0].shape)
+    # TODO normalizacja wektorów?
+    I = np.eye(normal_vectors_2D[0].shape[1])
+    for i, vec in enumerate(normal_vectors_2D):
+        # print(np.matmul(vec, vec.transpose()))
+        R = I - np.matmul(vec, vec.transpose())
+        # print(f"R : {R}")
+        R_sum += R
+        S = np.matmul(R, centers_2D[i])
+        # print(f"S : {S}")
+        S_sum += S
+
+    # print(R_sum, S_sum)
+
+    c = np.matmul(np.linalg.inv(R_sum), S_sum)
+
+    return c
