@@ -26,13 +26,15 @@ Więc przeanalizujemy to w 2D przestrzeni obrazu.
 Środek naszej gałki ocznej to będzie przęciecie wektorów normalnych naszych dysków (źrenic)
 Linie te ze wzgledu na błędy i założenia nie będą się przecinac w jednym punkcie, wiec wybieramy najblższy wszystkim liniom
 Dzieki temu mamy wspolrzedne x,y środka źrenicy c
+Nie znamy współrzednej z wiec na razie ją fixujemy 
 
 SPHERE RADIUS ESTIMATE
 
 każdy wektor normalny źrenicy musi wskazywac kierunek od środka sfery n* (c-p) > 0, 
-teraz możemy odrzucić jedno rozwiązania, którego wektor normlany wskazuje do środka sfery
+teraz możemy odrzucić jedno rozwiązania, którego wektor normalny wskazuje do środka sfery
 
-można policzyc środek dysku stycznego do sfery , jako przecięcie lini (camera_vertex, p) i lini ze środka sfery do p (c, p)
+można policzyc środek dysku stycznego do sfery , 
+jako przecięcie lini (camera_vertex, p) i lini ze środka sfery do p (c, p)
 liczymy punkt najbliższy obu liniom
 R - promień sfery to średni dystans od środka sfery do środka źrenicy  mean(R = p-c)
 

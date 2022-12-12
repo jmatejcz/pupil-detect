@@ -47,7 +47,8 @@ def visualize_pupil(input_img, output_img):
 
     image = np.transpose(input_img.cpu().numpy(), (1, 2, 0)).copy()
     outputs_sig = torch.sigmoid(output_img)
-    outputs_sig = np.transpose(outputs_sig.cpu().detach().numpy(), (1, 2, 0)).copy()
+    outputs_sig = np.transpose(
+        outputs_sig.cpu().detach().numpy(), (1, 2, 0)).copy()
 
     plt.imshow(image)
     plt.show()
@@ -74,7 +75,8 @@ def fit_ellipse(mask):
     ret, thresh = cv2.threshold(mask, 0.5, 1, cv2.THRESH_BINARY)
     thresh = np.asarray(thresh, dtype=np.uint8)
 
-    countours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    countours, _ = cv2.findContours(
+        thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # print(countours)
     try:
         # if len(countours) > 0:
@@ -113,30 +115,26 @@ def get_pupil_radius_from_masks(masks):
     # return sorted_
 
 
-def calc_intersection(normal_vectors_2D, centers_2D):
-    """Calculate point nearest to all the lines, starting in centers
-
-    :param normal_vectors_2D: _description_
-    :type normal_vectors_2D: _type_
-    :param centers_2D: _description_
-    :type centers_2D: _type_
+def calc_intersection(vectors, centers):
+    """
+    Calculate point nearest to all the lines, starting in centers
     """
     R_sum = 0
     S_sum = 0
-    print(normal_vectors_2D[0].shape)
+    print(vectors[0].shape)
     # TODO normalizacja wektorów?
-    I = np.eye(normal_vectors_2D[0].shape[1])
-    for i, vec in enumerate(normal_vectors_2D):
+    I = np.eye(vectors[0].shape[1])
+    for i, vec in enumerate(vectors):
         # print(np.matmul(vec, vec.transpose()))
         R = I - np.matmul(vec, vec.transpose())
         # print(f"R : {R}")
         R_sum += R
-        S = np.matmul(R, centers_2D[i])
+        S = np.matmul(R, centers[i])
         # print(f"S : {S}")
         S_sum += S
 
     # print(R_sum, S_sum)
 
-    c = np.matmul(np.linalg.inv(R_sum), S_sum)
+    intersection = np.matmul(np.linalg.inv(R_sum), S_sum)
 
-    return c
+    return intersection

@@ -146,10 +146,8 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
         where x,y -> ellipse center, a,b -> axis, rot_angle -> rotation angle
 
     """
-    x, y = ellipse[0]
-    a, b = ellipse[1]
 
-    A, B, C, D, E, F = get_general_equation_ellipse_coefficients(x, y, a, b, ellipse[2])
+    A, B, C, D, E, F = get_general_equation_ellipse_coefficients(*ellipse)
 
     # step 1)
     # (1) in algorithm paper
@@ -174,7 +172,8 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
     lambda_coefficient_1 = 1
     lambda_coefficient_2 = -(a + b + c)
     lambda_coefficient_3 = (
-        b * c + c * a + a * b - np.power(f, 2) - np.power(g, 2) - np.power(h, 2)
+        b * c + c * a + a * b -
+        np.power(f, 2) - np.power(g, 2) - np.power(h, 2)
     )
     lambda_coefficient_4 = -(
         a * b * c
@@ -232,8 +231,12 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
 
     T1[0, 0:3], T1[1, 0:3], T1[2, 0:3] = li, mi, ni
 
+    normal_vec_pos = np.dot(T1, normal_vec_pos)
+    normal_vec_neg = np.dot(T1, normal_vec_neg)
+
     T2 = np.eye(4)
-    T2[0:3, 3] = -(u * li + v * mi + w * ni) / np.array([lambda1, lambda2, lambda3])
+    T2[0:3, 3] = -(u * li + v * mi + w * ni) / \
+        np.array([lambda1, lambda2, lambda3])
 
     # TODO o co tu chodzi
     T3_pos = calT3(l[0], m[0], n[0])
@@ -246,7 +249,7 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
 
     # transformation between iamge frame and camera frame -> T0
     T0 = np.eye(4)
-    T0[2, 3] = camera_vertex[2]  # focal length
+    T0[2, 3] = -camera_vertex[2]  # focal length
 
     #
     # algorithm paper (41)

@@ -137,3 +137,4 @@ dmypy.json
 /datasets/PupilCoreDataset/created_masks/eye1/
 
 /models/weights/
+/models/weights.zip
