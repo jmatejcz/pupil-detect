@@ -22,9 +22,7 @@ def visualize_ifopened(model, device, dataloaders, num_images=6, class_to_show=N
             image = np.transpose(inputs[0].cpu().numpy(), (1, 2, 0)).copy()
             x, y = image.shape[0], image.shape[1]
             digit = int(preds[0])
-            # if class_to_show:
-            #     cv2.putText(image, f"{digit}", (x-20, y-20), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0))
-            #     ax = plt.imshow(image)
+
             if label == class_to_show:
                 cv2.putText(
                     image,
@@ -121,20 +119,40 @@ def calc_intersection(vectors, centers):
     """
     R_sum = 0
     S_sum = 0
-    print(vectors[0].shape)
     # TODO normalizacja wektorów?
-    I = np.eye(vectors[0].shape[1])
+    dim = vectors[0].shape[1]
+    I = np.eye(dim)
     for i, vec in enumerate(vectors):
-        # print(np.matmul(vec, vec.transpose()))
         R = I - np.matmul(vec, vec.transpose())
-        # print(f"R : {R}")
         R_sum += R
-        S = np.matmul(R, centers[i])
-        # print(f"S : {S}")
-        S_sum += S
 
-    # print(R_sum, S_sum)
+        S = np.matmul(R, centers[i].reshape(dim, 1))
+        S_sum += S
 
     intersection = np.matmul(np.linalg.inv(R_sum), S_sum)
 
     return intersection
+
+
+def calc_sphere_line_intersection(u, o, c, r):
+    """_summary_
+
+    :param u: unit directio vector of line
+    :type u: _type_
+    :param o: origin of line
+    :type o: _type_
+    :param c: center of sphere
+    :type c: _type_
+    :param r: radius of sphere
+    :type r: _type_
+    """
+    delta = np.square(np.dot(u.T, (o-c))) - \
+    np.dot((o-c).T, (o-c)) + np.square(r)
+    if delta < 0:
+        print("delta less than 0")
+    else:
+        d = -[np.dot(u.T, (o-c))]
+        d1 = d + np.sqrt(delta)
+        d2 = d - np.sqrt(delta)
+    return [d1, d2]
+

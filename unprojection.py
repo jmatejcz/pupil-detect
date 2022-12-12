@@ -201,7 +201,7 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
 
     # find elements of a rotational transformation
     # (8) , (12) in algorithm paper
-    # one rotational coefficietns per lambda
+    # one rotational coefficietns set per lambda
     l1, m1, n1 = gen_rotation_transofrm_coefficents(lambda1, a, b, g, f, h)
     l2, m2, n2 = gen_rotation_transofrm_coefficents(lambda2, a, b, g, f, h)
     l3, m3, n3 = gen_rotation_transofrm_coefficents(lambda3, a, b, g, f, h)
@@ -218,11 +218,6 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
     normal_vec_pos = np.array([l[0], m[0], n[0], 1]).reshape(4, 1)
     normal_vec_neg = np.array([l[1], m[1], n[1], 1]).reshape(4, 1)
 
-    # applying the transformation to the surface's normal vector
-    # it gives as normal vector with respect to the camera frame
-    normal_cam_pos = np.dot(T1, normal_vec_pos)
-    normal_cam_neg = np.dot(T1, normal_vec_neg)
-
     li, mi, ni = T1[0, 0:3], T1[1, 0:3], T1[2, 0:3]
     if np.cross(li, mi).dot(ni) < 0:
         li = -li
@@ -231,14 +226,17 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
 
     T1[0, 0:3], T1[1, 0:3], T1[2, 0:3] = li, mi, ni
 
-    normal_vec_pos = np.dot(T1, normal_vec_pos)
-    normal_vec_neg = np.dot(T1, normal_vec_neg)
+    # applying the transformation to the surface's normal vector
+    # it gives as normal vector with respect to the camera frame
+    normal_cam_pos = np.dot(T1, normal_vec_pos)
+    normal_cam_neg = np.dot(T1, normal_vec_neg)
 
+    # (14) in algorithm paper
     T2 = np.eye(4)
     T2[0:3, 3] = -(u * li + v * mi + w * ni) / \
         np.array([lambda1, lambda2, lambda3])
 
-    # TODO o co tu chodzi
+    # (19) in algorith paper
     T3_pos = calT3(l[0], m[0], n[0])
     T3_neg = calT3(l[1], m[1], n[1])
 
@@ -251,15 +249,17 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
     T0 = np.eye(4)
     T0[2, 3] = -camera_vertex[2]  # focal length
 
-    #
+    # Calculating center with respect to the camera
     # algorithm paper (41)
     center_pos = calXYZ_perfect(A_pos, B_pos, C_pos, D_pos, radius)
     center_neg = calXYZ_perfect(A_neg, B_neg, C_neg, D_neg, radius)
 
-    # From perfect frame to camera frame
+    # Applying total transformation
+    # (35) in algorithm paper
     true_center_pos = np.matmul(
         T0, np.matmul(T1, np.matmul(T2, np.matmul(T3_pos, center_pos)))
     )
+    # if  neccessery the gaze if flipped towards camera
     if true_center_pos[2] < 0:
         center_pos[0:3] = -center_pos[0:3]
         true_center_pos = np.matmul(

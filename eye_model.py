@@ -1,5 +1,5 @@
 from unprojection import unproject_eye_circle
-from utils import calc_intersection
+from utils import calc_intersection, calc_sphere_line_intersection
 import numpy as np
 
 
@@ -29,7 +29,7 @@ class EyeModeling:
         x, y = ellipse[0]
         a, b = ellipse[1]
         rot = ellipse[2]
-        # need to switch for coordinates where camera is in the middle
+        # need to switch for coordinates with respect to camerain the middle
         # so (0,0) point is in the middle
         x -= self.image_shape[1] / 2
         y -= self.image_shape[0] / 2
@@ -47,6 +47,7 @@ class EyeModeling:
         # print(pupil_normal_pos, pupil_normal_neg)
         # print(pupil_centre_pos, pupil_centre_neg)
 
+        print(pupil_normal_pos, pupil_centre_neg)
         self.disc_normals.append((pupil_normal_pos, pupil_normal_neg))
         self.disc_centers.append((pupil_centre_pos, pupil_centre_neg))
 
@@ -54,8 +55,8 @@ class EyeModeling:
 
         # reduction to 2D, and taking pos normal vector
         # TODO można brac oba vektory skoro sa rownoległe ?
-        normal_vectors_2D = [vectors[0][0:2] for vectors in self.disc_normals]
-        disc_centers_2D = [centers[0][0:2] for centers in self.disc_centers]
+        normal_vectors_2D = [vectors[0][1:3] for vectors in self.disc_normals]
+        disc_centers_2D = [centers[0][1:3] for centers in self.disc_centers]
         self.estimated_eye_center_2D = calc_intersection(
             normal_vectors_2D, disc_centers_2D
         )
@@ -64,7 +65,7 @@ class EyeModeling:
         """
         Now we can discard 1 of 2 solutions for normal vector and center
         this has to be true : n * (c-p) > 0, also in 2D
-        Then we can calculate intersection between (camera_vertex, p) 
+        Then we can calculate intersection between (camera_vertex, p)
         and (c,p) to estimate sphere radius
         """
         self.filtered_disc_normals = []
@@ -74,7 +75,7 @@ class EyeModeling:
             n = self.disc_normals[i][0][0:2]
             c = self.estimated_eye_center_2D
             p = self.disc_centers[i][0][0:2]
-            result = n*(c-p)
+            result = n * (c - p)
             if result[0] > 0 and result[1] > 0:
                 self.filtered_disc_normals.append(self.disc_normals[i][0])
                 self.filtered_disc_centers.append(self.disc_centers[i][0])
@@ -82,7 +83,7 @@ class EyeModeling:
             n = self.disc_normals[i][1][0:2]
             c = self.estimated_eye_center_2D
             p = self.disc_centers[i][1][0:2]
-            result = n*(c-p)
+            result = n * (c - p)
             if result[0] > 0 and result[1] > 0:
                 self.filtered_disc_normals.append(self.disc_normals[i][1])
                 self.filtered_disc_centers.append(self.disc_centers[i][1])
@@ -91,18 +92,45 @@ class EyeModeling:
         # we take mean from all intersections
         # but first, we need a 3D coords of eye center, so we have to fix some value of z
         # and scale it with camera vertex
-        self.estimated_eye_center_3D = self.estimated_eye_center_2D * \
-            self.initial_z_of_eye_center/self.camera_vertex[2]  # focal length
+        self.estimated_eye_center_3D = (
+            self.estimated_eye_center_2D
+            * self.initial_z_of_eye_center
+            / self.camera_vertex[2]
+        )  # focal length
 
         radiuses = []
         for i in range(len(self.filtered_disc_normals)):
             # TODO czy na pewno vektor to p?
-            vectors = [self.filtered_disc_normals[i], self.filtered_disc_centers[i] /
-                       np.linalg.norm(self.filtered_disc_centers[i])]
+            vectors = [
+                self.filtered_disc_normals[i],
+                self.filtered_disc_centers[i]
+                / np.linalg.norm(self.filtered_disc_centers[i]),
+            ]
             # [0, 0, 0] is origin of camera so disc center can albo be vector to itself
             centers = [self.estimated_eye_center_3D,
                        self.filtered_disc_centers[i]]
             # p = calc_intersection(self.filtered_disc_normals, self.filtered_disc_centers)
 
             radiuses.append(self.estimated_eye_center_2D)
+
+        self.estimated_sphere_radius = np.mean(radiuses)
         return np.mean(radiuses)
+
+    def consistent_pupil_estimate(self, gaze, pupil_pos):
+        """
+        Depending on estimated eye center and radius,
+        calculate new pupil circle (p', n' ,r')
+        tangent to the eye sphere where
+        p' = sp
+        p'=c +Rn'
+        r'/z' = r/z
+        """
+        # s is found as intersect of sphere with (camera, pupil) line
+        # https://en.wikipedia.org/wiki/Line%E2%80%93sphere_intersection
+        u = pupil_pos / np.linalg.norm()  # unit direction vector
+        o = [0, 0, 0]  # origin of line
+        c = self.estimated_eye_center_3D
+        r = self.estimated_sphere_radius
+        calc_sphere_line_intersection(pupil_pos / np.linalg.norm(
+        ), [0, 0, 0], self.estimated_eye_center_3D, self.estimated_sphere_radius)
+   

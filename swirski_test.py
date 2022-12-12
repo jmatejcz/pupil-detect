@@ -53,25 +53,25 @@ with torch.no_grad():
     pupil_trainer.model = pupil_trainer.model.to(device)
     for i, (inputs, masks, opened) in enumerate(pupil_trainer.dataloaders["test"]):
 
-        inputs = inputs.to(device)
-        outputs = pupil_trainer.model(inputs)
+        if opened:
+            inputs = inputs.to(device)
+            outputs = pupil_trainer.model(inputs)
 
-        image = np.transpose(inputs[0].cpu().numpy(), (1, 2, 0)).copy()
-        outputs_sig = torch.sigmoid(outputs["out"][0])
-        outputs_sig = np.transpose(outputs_sig.cpu().numpy(), (1, 2, 0)).copy()
+            image = np.transpose(inputs[0].cpu().numpy(), (1, 2, 0)).copy()
+            outputs_sig = torch.sigmoid(outputs["out"][0])
+            outputs_sig = np.transpose(
+                outputs_sig.cpu().numpy(), (1, 2, 0)).copy()
 
-        ellipse = utils.fit_ellipse(outputs_sig)
-        if ellipse:
-            eye_modeling.two_circle_unprojection(ellipse)
+            ellipse = utils.fit_ellipse(outputs_sig)
+            if ellipse:
+                eye_modeling.two_circle_unprojection(ellipse)
 
-        # if i > 50:
+            # if i > 50:
 
         #     break
 
     eye_modeling.sphere_centre_estimate()
     print(eye_modeling.estimated_eye_center_2D)
-    print(eye_modeling.disc_centers[0])
-    print(eye_modeling.disc_normals[0])
     image = dataset.eye0_frames[0]
     for i in range(10):
 
