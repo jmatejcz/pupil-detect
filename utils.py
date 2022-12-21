@@ -45,8 +45,7 @@ def visualize_pupil(input_img, output_img):
 
     image = np.transpose(input_img.cpu().numpy(), (1, 2, 0)).copy()
     outputs_sig = torch.sigmoid(output_img)
-    outputs_sig = np.transpose(
-        outputs_sig.cpu().detach().numpy(), (1, 2, 0)).copy()
+    outputs_sig = np.transpose(outputs_sig.cpu().detach().numpy(), (1, 2, 0)).copy()
 
     plt.imshow(image)
     plt.show()
@@ -64,17 +63,14 @@ def evaluate_pupil(model, dataloaders, device):
             labels = labels.to(device)
 
             outputs = model(inputs)
-            print(outputs, labels)
             diff = (labels[0][0] - outputs[0][0], labels[0][1] - outputs[0][1])
-            print(diff)
 
 
 def fit_ellipse(mask):
     ret, thresh = cv2.threshold(mask, 0.5, 1, cv2.THRESH_BINARY)
     thresh = np.asarray(thresh, dtype=np.uint8)
 
-    countours, _ = cv2.findContours(
-        thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    countours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # print(countours)
     try:
         # if len(countours) > 0:
@@ -120,7 +116,7 @@ def calc_intersection(vectors, centers):
     R_sum = 0
     S_sum = 0
     # TODO normalizacja wektorów?
-    dim = vectors[0].shape[1]
+    dim = vectors[0].shape[0]
     I = np.eye(dim)
     for i, vec in enumerate(vectors):
         R = I - np.matmul(vec, vec.transpose())
@@ -135,24 +131,20 @@ def calc_intersection(vectors, centers):
 
 
 def calc_sphere_line_intersection(u, o, c, r):
-    """_summary_
+    """Find intersection of line and sphere
 
     :param u: unit directio vector of line
-    :type u: _type_
     :param o: origin of line
-    :type o: _type_
     :param c: center of sphere
-    :type c: _type_
     :param r: radius of sphere
-    :type r: _type_
     """
-    delta = np.square(np.dot(u.T, (o-c))) - \
-    np.dot((o-c).T, (o-c)) + np.square(r)
+    # print(u)
+    delta = np.square(np.dot(u.T, (o - c))) - np.dot((o - c).T, (o - c)) + np.square(r)
     if delta < 0:
         print("delta less than 0")
     else:
-        d = -[np.dot(u.T, (o-c))]
+        d = -np.dot(u.T, (o - c))
+        # print(d, delta)
         d1 = d + np.sqrt(delta)
         d2 = d - np.sqrt(delta)
-    return [d1, d2]
-
+        return [d1, d2]
