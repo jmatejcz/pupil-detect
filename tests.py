@@ -1,13 +1,5 @@
-import matplotlib.pyplot as plt
 from datasets.PupilCoreDatasetPupil import PupilCoreDatasetGazeTrack
 import torch
-from eye_model import EyeModeling
-from torchvision.models.segmentation import fcn_resnet50
-import numpy as np
-import utils
-from models.ifOpened import ifOpenedModel
-from models.trainers import PupilSegmentationTrainer, IfOpenedTrainer
-from visualization import visualise_pupil
 from gaze_tracker import GazeTracker
 
 ###################################################################

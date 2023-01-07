@@ -2,12 +2,10 @@ import matplotlib.pyplot as plt
 from datasets.PupilCoreDatasetPupil import PupilCoreDataset
 import torch
 from eye_model import EyeModeling
-from torchvision.models.segmentation import fcn_resnet50
 from models.ifOpened import ifOpenedModel
 from models.pupilDetectModel import pupilSegmentationModel
-from models.trainers import PupilSegmentationTrainer, IfOpenedTrainer
 from visualization import visualise_pupil
-from datasets.utils import get_dataloaders, get_one_dataloader
+from datasets.utils import get_one_dataloader
 import utils
 import numpy as np
 
@@ -25,14 +23,12 @@ class GazeTracker:
         self.cnn_if_opened = self.cnn_if_opened.to(self.device)
 
     def fit_tracker(self, dataset: PupilCoreDataset):
-        """
-        dataset - has to be like PupilCoreDataset
-        """
         dataloader = get_one_dataloader(dataset)
         dataset.get_pupil_masks()
         estimated_pupil_radius_in_px = utils.get_pupil_radius_from_masks(
             dataset.eye0_masks
         )
+        # eye_radius_in_px is not used in algortihm, its just to estimate how to set inital_eye_z
         eye_radius_in_px = estimated_pupil_radius_in_px * 10.5 / 4
         inital_eye_center_z = estimated_pupil_radius_in_px * 25.5
         image_shape = dataset.image_shape[:2]
@@ -68,30 +64,33 @@ class GazeTracker:
                             unprojected_centers,
                         ) = self.eye_modeling.two_circle_unprojection(ellipse)
 
+                        # this part is for visalization
+                        # ============================================================
                         # if i % 100 == 0:
-                        # print(ellipse)
-                        # image = visualise_pupil.draw_ellipse(image, ellipse)
-                        # image = visualise_pupil.draw_normal_vectors_2D(
-                        #     image,
-                        #     self.eye_modeling.ellipse_centers[-1],
-                        #     self.eye_modeling.disc_normals[-1][0][0:2].ravel(),
-                        #     color=(0, 0, 255),
-                        # )
-                        # image = visualise_pupil.draw_normal_vectors_2D(
-                        #     image,
-                        #     self.eye_modeling.ellipse_centers[-1],
-                        #     self.eye_modeling.disc_normals[-1][1][0:2].ravel(),
-                        #     color=(255, 0, 0),
-                        # )
-                        # plt.imshow(image)
-                        # plt.show()
 
+                        #     image = visualise_pupil.draw_ellipse(image, ellipse)
+                        #     image = visualise_pupil.draw_normal_vectors_2D(
+                        #         image,
+                        #         self.eye_modeling.ellipse_centers[-1],
+                        #         self.eye_modeling.disc_normals[-1][0][0:2].ravel(),
+                        #         color=(0, 0, 255),
+                        #     )
+                        #     image = visualise_pupil.draw_normal_vectors_2D(
+                        #         image,
+                        #         self.eye_modeling.ellipse_centers[-1],
+                        #         self.eye_modeling.disc_normals[-1][1][0:2].ravel(),
+                        #         color=(255, 0, 0),
+                        #     )
+                        #     plt.imshow(image)
+                        #     plt.show()
+                        # ===========================================================
             self.eye_modeling.sphere_centre_estimate()
 
         self.eye_modeling.sphere_radius_estimate()
-        print(self.eye_modeling.estimated_eye_center_2D)
-        print(self.eye_modeling.estimated_eye_center_3D)
-        print(self.eye_modeling.estimated_sphere_radius)
+        print(f"estimated 2D eye center -> {self.eye_modeling.estimated_eye_center_2D}")
+        print(f"estimated 3D eye center -> {self.eye_modeling.estimated_eye_center_3D}")
+        print(f"estimated eye radius -> {self.eye_modeling.estimated_sphere_radius}")
+        print(f"avarage eye radius in px -> {eye_radius_in_px}")
 
     def track_gaze_vector(self, dataset: PupilCoreDataset):
         dataloader = get_one_dataloader(dataset)
@@ -117,15 +116,14 @@ class GazeTracker:
                             unprojected_vectors,
                             unprojected_centers,
                         ) = self.eye_modeling.two_circle_unprojection(ellipse)
-                        print(unprojected_vectors)
-                        print(unprojected_centers)
                         (
                             filtered_vector,
                             filtered_pos,
                         ) = self.eye_modeling.filter_vectors_towards_center(
                             [unprojected_vectors], [unprojected_centers]
                         )
-
+                        # this part is for visalization
+                        # ============================================================
                         # image = np.transpose(inputs[0].cpu().numpy(), (1, 2, 0)).copy()
                         # image = visualise_pupil.draw_point(
                         #     image, self.eye_modeling.estimated_eye_center_3D[:2]
@@ -144,6 +142,7 @@ class GazeTracker:
                         # )
                         # plt.imshow(image)
                         # plt.show()
+                        # =============================================================
                         if filtered_pos:
                             try:
                                 (

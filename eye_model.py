@@ -6,7 +6,7 @@ import numpy as np
 class EyeModeling:
     """
     https://www.researchgate.net/publication/264658852_A_fully-automatic_temporal_approach_to_single_camera_glint-free_3D_eye_model_fitting
-    Sometimes I will use variable names according to the paper
+    variable names matching in paper:
     n - pupil disc normal vector
     c - eye sphere center
     p - pupil center
@@ -26,7 +26,7 @@ class EyeModeling:
 
     def two_circle_unprojection(self, ellipse) -> tuple:
         """
-        notatki.txt -> two circle unprojection
+        README.txt -> two circle unprojection
         Returns:
             disc_normals -> ([[x], [y], [z]], [[x], [y], [z]])
             disc_centers -> ([[x], [y], [z]], [[x], [y], [z]])
@@ -60,22 +60,37 @@ class EyeModeling:
         return (unprojected_vectors, unprojected_centers)
 
     def sphere_centre_estimate(self):
-        """intersection of the normal vectors is a sphere center
+        """
+        README.txt -> SPHERE CENTRE ESTIMATE
+        intersection of the normal vectors is a sphere center
         Returns: sphere center 2D ->[[x], [y]]
         shape -> (2,1)
 
         """
         # reduction to 2D, and taking pos normal vector
         # TODO można brac oba vektory skoro sa rownoległe ?
-        # no wlasnie chyba nie sa z jakiegos powodu
+        # wlasnie chyba nie sa z jakiegos powodu
         normal_vectors_2D = np.vstack(
             (
                 [vectors[0][0:2] for vectors in self.disc_normals],
-                [vectors[0][0:2] for vectors in self.disc_normals],
+                [vectors[1][0:2] for vectors in self.disc_normals],
             )
         )
-        # disc_centers_2D = [centers[0][0:2] for centers in self.disc_centers]
-        disc_centers_2D = np.vstack((self.ellipse_centers, self.ellipse_centers))
+
+        # TODO tutaj próbowałem 2 podejść, albo jako początek wektora brać przewidziane disc centers
+        # albo ellipse centers tam gdzie sa na obrazie
+        # raczej z przewidzianymi disc centers wychodza lepsze wyniki
+
+        # predicted centers 3D
+        disc_centers_2D = np.vstack(
+            (
+                [centers[0][0:2] for centers in self.disc_centers],
+                [centers[1][0:2] for centers in self.disc_centers],
+            )
+        )
+
+        # pupil centers from image
+        # disc_centers_2D = np.vstack((self.ellipse_centers, self.ellipse_centers))
 
         self.estimated_eye_center_2D = calc_intersection(
             normal_vectors_2D, disc_centers_2D
@@ -125,6 +140,7 @@ class EyeModeling:
 
     def sphere_radius_estimate(self):
         """
+        README.txt -> SPHERE RADIUS ESTIMATE
         Now we can discard 1 of 2 solutions for normal vector and center
         this has to be true : n * (c-p) > 0, also in 2D
         Then we can calculate intersection between (camera_vertex, p)
@@ -158,6 +174,7 @@ class EyeModeling:
 
     def consistent_pupil_estimate(self, pupil_pos):
         """
+        README.txt -> CONSISTENT PUPIL ESTIMATE
         Depending on estimated eye center and radius,
         calculate new pupil circle (p', n' ,r')
         tangent to the eye sphere where
