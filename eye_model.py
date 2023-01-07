@@ -20,6 +20,7 @@ class EyeModeling:
 
         self.disc_normals = []
         self.disc_centers = []
+        self.ellipse_centers = []
 
         self.initial_z_of_eye_center = inital_z
 
@@ -34,11 +35,10 @@ class EyeModeling:
         x, y = ellipse[0]
         a, b = ellipse[1]
         rot = ellipse[2]
-        # need to switch for coordinates with respect to camerain the middle
+        # need to switch for coordinates with respect to camera in the middle
         # so (0,0) point is in the middle
         x -= self.image_shape[1] / 2
         y -= self.image_shape[0] / 2
-
         (
             pupil_normal_pos,
             pupil_normal_neg,
@@ -53,6 +53,7 @@ class EyeModeling:
         unprojected_vectors = (pupil_normal_pos, pupil_normal_neg)
         unprojected_centers = (pupil_centre_pos, pupil_centre_neg)
 
+        self.ellipse_centers.append(np.array([x, y]))
         self.disc_normals.append(unprojected_vectors)
         self.disc_centers.append(unprojected_centers)
 
@@ -66,8 +67,15 @@ class EyeModeling:
         """
         # reduction to 2D, and taking pos normal vector
         # TODO można brac oba vektory skoro sa rownoległe ?
-        normal_vectors_2D = [vectors[0][0:2] for vectors in self.disc_normals]
-        disc_centers_2D = [centers[0][0:2] for centers in self.disc_centers]
+        # no wlasnie chyba nie sa z jakiegos powodu
+        normal_vectors_2D = np.vstack(
+            (
+                [vectors[0][0:2] for vectors in self.disc_normals],
+                [vectors[0][0:2] for vectors in self.disc_normals],
+            )
+        )
+        # disc_centers_2D = [centers[0][0:2] for centers in self.disc_centers]
+        disc_centers_2D = np.vstack((self.ellipse_centers, self.ellipse_centers))
 
         self.estimated_eye_center_2D = calc_intersection(
             normal_vectors_2D, disc_centers_2D
@@ -83,7 +91,9 @@ class EyeModeling:
 
         return self.estimated_eye_center_2D, self.estimated_eye_center_3D
 
-    def filter_vectors_towards_center(self, disc_normals, disc_centers) -> tuple:
+    def filter_vectors_towards_center(
+        self, disc_normals=None, disc_centers=None
+    ) -> tuple:
         """
         Returns only vectors with their disc centers pointing towards sphere center
         filtered_disc_normals -> [[x], [y], [z]]

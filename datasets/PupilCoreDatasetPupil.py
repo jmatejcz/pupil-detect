@@ -3,7 +3,7 @@ from torchvision import transforms
 from .utils import get_labels_from_csv, get_frames_from_video
 import numpy as np
 import cv2
-import os
+import pandas as pd
 
 
 class PupilCoreDataset(torch.utils.data.Dataset):
@@ -24,21 +24,23 @@ class PupilCoreDataset(torch.utils.data.Dataset):
         eye0_labels_path,
         eye1_video_path,
         eye1_labels_path,
-        dataset_len,
+        dataset_len=None,
     ) -> None:
         super().__init__()
         self.eye0_video_path = eye0_video_path
         self.eye0_labels_path = eye0_labels_path
         self.eye1_video_path = eye1_video_path
         self.eye1_labels_path = eye1_labels_path
+        if dataset_len is not None:
+            self.dataset_len = dataset_len
         self.eye0_labels_df = get_labels_from_csv(self.eye0_labels_path, dataset_len)
         self.eye0_frames = get_frames_from_video(self.eye0_video_path, dataset_len)
         self.eye1_labels_df = get_labels_from_csv(self.eye1_labels_path, dataset_len)
         self.eye1_frames = get_frames_from_video(self.eye1_video_path, dataset_len)
-        self.dataset_len = dataset_len
         self.eye0_masks = []
         self.eye1_masks = []
-        self.focal_len = 140  # in pixels?
+        self.focal_len = 140
+        self.image_shape = self.eye0_frames[0].shape
 
     def load_masks(self, eye0_path, eye1_path):
 
@@ -50,7 +52,7 @@ class PupilCoreDataset(torch.utils.data.Dataset):
             mask = cv2.imread(f"{eye1_path}/{i}.png", cv2.IMREAD_GRAYSCALE)
             self.eye1_masks.append(mask)
 
-    def get_pupil_ellipse(self):
+    def get_pupil_masks(self):
         self.eye0_masks = []
         self.eye1_masks = []
         for i, image in enumerate(self.eye0_frames):
@@ -119,30 +121,81 @@ class PupilCoreDataset(torch.utils.data.Dataset):
 
             cv2.imwrite(f"{path}/eye1/{i}.png", mask)
 
-    # ================= for pupil segmentation ===================
     def __getitem__(self, idx):
-        image = self.eye0_frames[idx]
-        pupil_mask = self.eye0_masks[idx]
-        opened = self.eye0_labels_df.at[idx, "opened"]
-        T = transforms.Compose([transforms.ToTensor()])
-        image = T(image)
-        pupil_mask = T(pupil_mask)
-
-        return (image, pupil_mask, opened)
-
-    # ================ for pupil core =======================
-    # def __getitem__(self, idx):
-    #     pupil_coords = np.array(
-    #         [
-    #             self.eye0_labels_df.at[idx, "pupil_center_x_coord"],
-    #             self.eye0_labels_df.at[idx, "pupil_center_y_coord"],
-    #         ]
-    #     )
-    #     image = self.eye0_frames[idx]
-    #     T = transforms.Compose([transforms.ToTensor()])
-    #     image = T(image)
-    #     pupil_coords = torch.as_tensor(pupil_coords, dtype=torch.float32)
-    #     return image, pupil_coords
+        pass
 
     def __len__(self):
         return len(self.eye0_frames)
+
+
+class PupilCoreDatasetTraining(PupilCoreDataset):
+    "dataset used for training, __getitem__ returns 1 eye at a time, with its mask"
+
+    def __init__(
+        self,
+        eye0_video_path,
+        eye0_labels_path,
+        eye1_video_path,
+        eye1_labels_path,
+        dataset_len=None,
+    ) -> None:
+        super().__init__(
+            eye0_video_path,
+            eye0_labels_path,
+            eye1_video_path,
+            eye1_labels_path,
+            dataset_len,
+        )
+        self.get_pupil_masks()
+        self.eye_frames = self.eye0_frames + self.eye1_frames
+        self.eye_masks = self.eye0_masks + self.eye1_masks
+        self.eye_labels_df = pd.DataFrame(
+            pd.concat(
+                [self.eye0_labels_df, self.eye1_labels_df], axis=0, ignore_index=True
+            )
+        )
+
+    # ================= for pupil segmentation ===================
+    def __getitem__(self, idx):
+        image0 = self.eye0_frames[idx]
+        mask0 = self.eye0_masks[idx]
+        opened0 = self.eye_labels_df.at[idx, "opened"]
+        T = transforms.Compose([transforms.ToTensor()])
+        image0 = T(image0)
+        mask0 = T(mask0)
+
+        return (image0, mask0, opened0)
+
+
+class PupilCoreDatasetGazeTrack(PupilCoreDataset):
+    "dataset used for gaze tracking, __getitem__ returns both eyes parallel"
+
+    def __init__(
+        self,
+        eye0_video_path,
+        eye0_labels_path,
+        eye1_video_path,
+        eye1_labels_path,
+        dataset_len=None,
+    ) -> None:
+        super().__init__(
+            eye0_video_path,
+            eye0_labels_path,
+            eye1_video_path,
+            eye1_labels_path,
+            dataset_len,
+        )
+
+    # ================= for gaze tracking ===================
+    def __getitem__(self, idx):
+        image0 = self.eye0_frames[idx]
+        image1 = self.eye0_frames[idx]
+
+        opened0 = self.eye0_labels_df.at[idx, "opened"]
+        opened1 = self.eye0_labels_df.at[idx, "opened"]
+
+        T = transforms.Compose([transforms.ToTensor()])
+        image0 = T(image0)
+        image1 = T(image1)
+
+        return ((image0, image1), (opened0, opened1))

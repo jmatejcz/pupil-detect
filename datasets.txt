@@ -1,6 +1,0 @@
-https://www.mpi-inf.mpg.de/departments/computer-vision-and-machine-learning/research/gaze-based-human-computer-interaction/labelled-pupils-in-the-wild-lpw
-https://datagen.tech/blog/eye-datasets/
-https://www.kaggle.com/c/mp18-eye-gaze-estimation - zdj z webcama
-x,y - środek
-a,b - axis elipsy
-p - kąt obrotu elipsy

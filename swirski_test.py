@@ -10,21 +10,23 @@ from models.trainers import PupilSegmentationTrainer, IfOpenedTrainer
 from visualization import visualise_pupil
 import cv2
 
+PATH = "datasets/PupilCoreDataset/"
 
 DATASET_LEN_TO_USE = 5000
 dataset = PupilCoreDataset(
-    "datasets/PupilCoreDataset/video5_eye0_video.avi",
-    "datasets/PupilCoreDataset/video5_eye0_pupildata.csv",
-    "datasets/PupilCoreDataset/video5_eye1_video.avi",
-    "datasets/PupilCoreDataset/video5_eye1_pupildata.csv",
+    f"{PATH}video5_eye0_video.avi",
+    f"{PATH}video5_eye0_pupildata.csv",
+    f"{PATH}video5_eye1_video.avi",
+    f"{PATH}video5_eye1_pupildata.csv",
     DATASET_LEN_TO_USE,
 )
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 dataset.load_masks(
-    "datasets/PupilCoreDataset/created_masks/eye0",
-    "datasets/PupilCoreDataset/created_masks/eye1",
+    f"{PATH}created_masks/eye0",
+    f"{PATH}created_masks/eye1",
 )
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ifOpenedModel = ifOpenedModel()
 PupilSegmentationModel = fcn_resnet50(weights=None, num_classes=1)
@@ -47,7 +49,7 @@ image_shape = (192, 192)
 # estiamte eye radius
 # promien oka 12,5 mm
 # promien oka do rogówki na ktorej żrenica byłaby dyskiem 10,5 mm
-# przeliczam to na piksely skalujac z wielkoscia źrenicy w pixelach
+# przeliczam to na piksele skalujac z wielkoscia źrenicy w pixelach
 # eye_radius/eye_radius_in_px = pupil_radius/pupil_radius_in_px
 print(estimated_pupil_radius_in_px)
 eye_radius_in_px = estimated_pupil_radius_in_px * 10.5 / 4
