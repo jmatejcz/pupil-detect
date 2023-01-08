@@ -66,23 +66,22 @@ class GazeTracker:
 
                         # this part is for visalization
                         # ============================================================
-                        # if i % 100 == 0:
-
-                        #     image = visualise_pupil.draw_ellipse(image, ellipse)
-                        #     image = visualise_pupil.draw_normal_vectors_2D(
-                        #         image,
-                        #         self.eye_modeling.ellipse_centers[-1],
-                        #         self.eye_modeling.disc_normals[-1][0][0:2].ravel(),
-                        #         color=(0, 0, 255),
-                        #     )
-                        #     image = visualise_pupil.draw_normal_vectors_2D(
-                        #         image,
-                        #         self.eye_modeling.ellipse_centers[-1],
-                        #         self.eye_modeling.disc_normals[-1][1][0:2].ravel(),
-                        #         color=(255, 0, 0),
-                        #     )
-                        #     plt.imshow(image)
-                        #     plt.show()
+                        if i % 100 == 0:
+                            # image = visualise_pupil.draw_ellipse(image, ellipse)
+                            # image = visualise_pupil.draw_normal_vectors_2D(
+                            #     image,
+                            #     self.eye_modeling.ellipse_centers[-1],
+                            #     self.eye_modeling.disc_normals[-1][0][0:2].ravel(),
+                            #     color=(0, 0, 255),
+                            # )
+                            # image = visualise_pupil.draw_normal_vectors_2D(
+                            #     image,
+                            #     self.eye_modeling.ellipse_centers[-1],
+                            #     self.eye_modeling.disc_normals[-1][1][0:2].ravel(),
+                            #     color=(255, 0, 0),
+                            # )
+                            plt.imshow(image)
+                            plt.show()
                         # ===========================================================
             self.eye_modeling.sphere_centre_estimate()
 
@@ -140,8 +139,8 @@ class GazeTracker:
                         #     unprojected_vectors[1][0:2],
                         #     color=(0, 0, 255),
                         # )
-                        # plt.imshow(image)
-                        # plt.show()
+                        plt.imshow(image)
+                        plt.show()
                         # =============================================================
                         if filtered_pos:
                             try:

@@ -140,6 +140,8 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
     """_based on Three-dimensional location estimation of circular features for machine vision by
     R. Safaee-Rad; I. Tchoukanov; K.C. Smith; B. Benhabib -> https://ieeexplore.ieee.org/document/163786
 
+    VARIABLE NAMES MOSTLY FROM PAPER
+
     :param camera_vertex: center of camera lens
     :type camera_vertex: tuple - camera vertex coords in 3D with respect to
     :param ellipse: (x, y, a, b, rot_angle)
@@ -172,8 +174,7 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
     lambda_coefficient_1 = 1
     lambda_coefficient_2 = -(a + b + c)
     lambda_coefficient_3 = (
-        b * c + c * a + a * b -
-        np.power(f, 2) - np.power(g, 2) - np.power(h, 2)
+        b * c + c * a + a * b - np.power(f, 2) - np.power(g, 2) - np.power(h, 2)
     )
     lambda_coefficient_4 = -(
         a * b * c
@@ -233,8 +234,7 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
 
     # (14) in algorithm paper
     T2 = np.eye(4)
-    T2[0:3, 3] = -(u * li + v * mi + w * ni) / \
-        np.array([lambda1, lambda2, lambda3])
+    T2[0:3, 3] = -(u * li + v * mi + w * ni) / np.array([lambda1, lambda2, lambda3])
 
     # (19) in algorith paper
     T3_pos = calT3(l[0], m[0], n[0])
@@ -280,6 +280,3 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
         true_center_pos[0:3],
         true_center_neg[0:3],
     )
-
-
-

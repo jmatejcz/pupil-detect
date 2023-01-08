@@ -1,4 +1,4 @@
-Żeby wytrenować sieci dla wybranych danych odpowiednio zmodyfikować i odpalić plik train.py (wyśle Panu wagi wytrenowanego juz modelu, żeby nie musiał Pan tracic na to czasu).
+Żeby wytrenować sieci dla wybranych danych odpowiednio należy zmodyfikować i odpalić plik train.py (wyśle Panu wagi wytrenowanego juz modelu, żeby nie musiał Pan tracic na to czasu).
 
 Żeby odpalić własciwy gaze_tracking , uruchomic plik tests.py, na razie na 1 datasecie który od Pana dostałem(nie trenowałem jeszcze sieci na pozostałych).
 W pliku gaze_tracker.py jest cały proces zakodowany, specjalne sekcje są do wizualizacji, proszę je odkomentować jeżeli chce Pan zobaczyc jak wyglada przewidziana elipsa, 
@@ -12,9 +12,9 @@ pierwszy krok i najbardziej skomplikowany to unprojection(nwm jak po polsku) wek
 Z tego co nad tym siedze już długi czas(i widac na wizualizacji), to wektory z unprojection po prostu nie pokazują poprawie w strone środka, często są kompletnie w poprzek,
 przez co estymowany środek też wychodzi bezsensowny.
 Sprawdzałem sam algorytm unprojection mnóstwo razy, nawet sprawdziłem juz w rozpaczy, kopiując z DeepVoga ich algorytm unprojection i wychodziło to samo.
-Skoro elipsa jest przeiwidywana w porządku(widać na wizualizacji), to chyba musi być jakiś durny błąd w stylu zamienione współrzedne albo coś z perspektywą kamery,
+Skoro elipsa jest przewidywana w porządku(widać na wizualizacji), to chyba musi być jakiś durny błąd w stylu zamienione współrzedne albo coś z perspektywą kamery,
 ja podchodzę do tego tak że środek obrazu to w perspektywie kamery (0,0) i tak też wszytkie obliczenia są prowadzone. Ale może to coś innego czego ja nie widze, 
-może pańskie świeże spojrzenie coś wykryje ;p
+może pańskie świeże spojrzenie coś wykryje ;p.
 
 
 =======================================================================================================
