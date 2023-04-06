@@ -29,6 +29,19 @@ def draw_normal_vectors_2D(image, start_point, vector, color):
     return img
 
 
+def draw_ellipse(image, ellipse):
+    img = cv2.ellipse(
+        image,
+        (int(ellipse[0][0]), int(ellipse[0][1])),
+        (int(ellipse[1][0] // 2), int(ellipse[1][1] // 2)),
+        int(ellipse[2]),
+        0,
+        360,
+        (200, 30, 100),
+    )
+    return img
+
+
 def draw_point(image, point):
     x, y = point
     shape = 192 / 2

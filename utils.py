@@ -106,7 +106,6 @@ def get_pupil_radius_from_masks(masks):
         radiuses.append(el[0][1][0] / 2)
 
     return np.mean(radiuses)
-    # return sorted_
 
 
 def calc_intersection(vectors, centers):
@@ -148,3 +147,15 @@ def calc_sphere_line_intersection(u, o, c, r):
         d1 = d + np.sqrt(delta)
         d2 = d - np.sqrt(delta)
         return [d1, d2]
+
+
+def calc_line_plane_intersection(vec, o, plane):
+    """_summary_
+
+    :param vec: vector
+    :type vec: _type_
+    :param o: origin
+    :type o: _type_
+    :param plane: 3 points of a plane [A, B, C]
+    :type plane: _type_
+    """

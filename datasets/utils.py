@@ -1,8 +1,11 @@
 import cv2
 import pandas as pd
+import torch
 
 
 def get_frames_from_video(video_path, data_len):
+    if not data_len:
+        data_len = 1_000_000
     frames = []
     cap = cv2.VideoCapture(video_path)
     if cap.isOpened():
@@ -16,7 +19,6 @@ def get_frames_from_video(video_path, data_len):
                 print("err")
                 continue
             if not is_success:
-                print("can't receive frame")
                 break
             image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frames.append(image)
@@ -25,8 +27,10 @@ def get_frames_from_video(video_path, data_len):
 
 
 def get_labels_from_csv(csv_path, data_len):
-    df = pd.read_csv(csv_path, nrows=data_len)
-    # df.drop(['p', 'w', 'h'], axis=1, inplace=True)
+    if not data_len:
+        df = pd.read_csv(csv_path)
+    else:
+        df = pd.read_csv(csv_path, nrows=data_len)
     opened = [1 if x > 0 else 0 for x in df["x"]]
     df.rename(
         columns={
@@ -42,5 +46,28 @@ def get_labels_from_csv(csv_path, data_len):
     return df
 
 
-def fit_ellipse(image, mask):
-    pass
+def get_dataloaders(
+    dataset: torch.utils.data.Dataset, dataset_len: int = None, train_split: float = 0.8
+) -> dict:
+    if not dataset_len:
+        dataset_len = len(dataset)
+    train_part = int(dataset_len * train_split)
+    indices = torch.randperm(len(dataset)).tolist()
+
+    train_set = torch.utils.data.Subset(dataset, indices[:train_part])
+    test_set = torch.utils.data.Subset(dataset, indices[train_part:])
+
+    train_dataloader = torch.utils.data.DataLoader(
+        train_set, batch_size=8, shuffle=True
+    )
+    test_dataloader = torch.utils.data.DataLoader(test_set, batch_size=1, shuffle=False)
+    dataloaders = {"train": train_dataloader, "test": test_dataloader}
+    return dataloaders
+
+
+def get_one_dataloader(dataset: torch.utils.data.Dataset, dataset_len: int = None):
+    if not dataset_len:
+        dataset_len = len(dataset)
+
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False)
+    return dataloader
