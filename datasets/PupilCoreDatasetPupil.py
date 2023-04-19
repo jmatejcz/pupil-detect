@@ -79,7 +79,7 @@ class PupilCoreDataset(torch.utils.data.Dataset):
             )
             ellipse = np.asarray(ellipse, dtype=np.float32)
             ellipse = cv2.cvtColor(ellipse, cv2.COLOR_RGB2GRAY)
-            ret, b_ellipse = cv2.threshold(ellipse, 1, 255, cv2.THRESH_BINARY)
+            ret, b_ellipse = cv2.threshold(ellipse, 1, 1, cv2.THRESH_BINARY)
             b_ellipse = b_ellipse.reshape(b_ellipse.shape + (1,))
 
             self.eye0_masks.append(b_ellipse)

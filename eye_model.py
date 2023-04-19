@@ -73,7 +73,7 @@ class EyeModeling:
         normal_vectors_2D = np.vstack(
             (
                 [vectors[0][0:2] for vectors in self.disc_normals],
-                [vectors[1][0:2] for vectors in self.disc_normals],
+                # [vectors[1][0:2] for vectors in self.disc_normals],
             )
         )
 
@@ -85,7 +85,7 @@ class EyeModeling:
         disc_centers_2D = np.vstack(
             (
                 [centers[0][0:2] for centers in self.disc_centers],
-                [centers[1][0:2] for centers in self.disc_centers],
+                # [centers[1][0:2] for centers in self.disc_centers],
             )
         )
 
