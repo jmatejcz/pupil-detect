@@ -6,54 +6,6 @@ import cv2
 import numpy as np
 
 
-def visualize_ifopened(model, device, dataloaders, num_images=6, class_to_show=None):
-    was_training = model.training
-    model.eval()
-    fig = plt.figure()
-
-    with torch.no_grad():
-        for i, (inputs, labels) in enumerate(dataloaders["test"]):
-            inputs = inputs.to(device)
-            labels = labels.to(device)
-            label = int(labels[0])
-            outputs = model(inputs)
-            _, preds = torch.max(outputs, 1)
-
-            image = np.transpose(inputs[0].cpu().numpy(), (1, 2, 0)).copy()
-            x, y = image.shape[0], image.shape[1]
-            digit = int(preds[0])
-
-            if label == class_to_show:
-                cv2.putText(
-                    image,
-                    f"{digit}",
-                    (x - 20, y - 20),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    1,
-                    (255, 0, 0),
-                )
-                ax = plt.imshow(image)
-
-            if i >= num_images:
-                model.train(mode=was_training)
-                return
-
-        model.train(mode=was_training)
-
-
-def visualize_pupil(input_img, output_img):
-
-    image = np.transpose(input_img.cpu().numpy(), (1, 2, 0)).copy()
-    outputs_sig = torch.sigmoid(output_img)
-    outputs_sig = np.transpose(outputs_sig.cpu().detach().numpy(), (1, 2, 0)).copy()
-
-    plt.imshow(image)
-    plt.show()
-
-    plt.imshow(outputs_sig)
-    plt.show()
-
-
 def evaluate_pupil(model, dataloaders, device):
     model.eval()
 

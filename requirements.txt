@@ -4,3 +4,4 @@ torchvision
 numpy
 ipykernel
 opencv-python
+seaborn

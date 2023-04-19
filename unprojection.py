@@ -150,7 +150,7 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
     """
 
     A, B, C, D, E, F = get_general_equation_ellipse_coefficients(*ellipse)
-
+    print(A, B, C, D, E, F)
     # step 1)
     # (1) in algorithm paper
     a_prime = A

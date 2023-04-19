@@ -2,6 +2,20 @@ import matplotlib.pyplot as plt
 import cv2
 
 
+def visualize_ifopened(image, pred: int):
+
+    x, y = image.shape[0], image.shape[1]
+    cv2.putText(
+        image,
+        f"{pred}",
+        (x - 20, y - 20),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        1,
+        (255, 0, 0),
+    )
+    return image
+
+
 def visualize_pupil(input_img, output_img):
 
     plt.imshow(input_img)
@@ -37,7 +51,7 @@ def draw_ellipse(image, ellipse):
         int(ellipse[2]),
         0,
         360,
-        (200, 30, 100),
+        (0, 0, 255),
     )
     return img
 
