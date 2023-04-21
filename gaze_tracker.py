@@ -33,7 +33,7 @@ class GazeTracker:
         )
         # eye_radius_in_px is not used in algortihm, its just to estimate how to set inital_eye_z
         eye_radius_in_px = estimated_pupil_radius_in_px * 10.5 / 2
-        inital_eye_center_z = estimated_pupil_radius_in_px * 24 * 2
+        inital_eye_center_z = estimated_pupil_radius_in_px * 25.5
         image_shape = dataset.image_shape[:2]
         self.focal_len = dataset.focal_len
 

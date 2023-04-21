@@ -22,7 +22,8 @@ def fit_ellipse(mask):
     ret, thresh = cv2.threshold(mask, 0.5, 1, cv2.THRESH_BINARY)
     thresh = np.asarray(thresh, dtype=np.uint8)
 
-    countours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    countours, _ = cv2.findContours(
+        thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # print(countours)
     try:
         # if len(countours) > 0:
@@ -90,7 +91,8 @@ def calc_sphere_line_intersection(u, o, c, r):
     :param r: radius of sphere
     """
     # print(u)
-    delta = np.square(np.dot(u.T, (o - c))) - np.dot((o - c).T, (o - c)) + np.square(r)
+    delta = np.square(np.dot(u.T, (o - c))) - \
+        np.dot((o - c).T, (o - c)) + np.square(r)
     if delta < 0:
         print("delta less than 0")
     else:
@@ -111,3 +113,12 @@ def calc_line_plane_intersection(vec, o, plane):
     :param plane: 3 points of a plane [A, B, C]
     :type plane: _type_
     """
+
+
+def convert_to_px(value):
+    """converts values in milimeters to pixels, depending on 
+
+    :param value: _description_
+    :type value: _type_
+    """
+    pass
