@@ -8,21 +8,21 @@ from visualization import visualise_pupil
 from datasets.utils import get_one_dataloader
 import utils
 import numpy as np
+from DeepVOG.deepvog.eyefitter import SingleEyeFitter
 
 
 class GazeTracker:
     def __init__(self, weight_path) -> None:
-        self.device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.cnn_if_opened = ifOpenedModel()
-        self.cnn_if_opened.load_state_dict(torch.load(
-            f"{weight_path}/squeeznet1_1.pt", map_location=self.device))
+        self.cnn_if_opened.load_state_dict(
+            torch.load(f"{weight_path}/squeeznet1_1.pt", map_location=self.device)
+        )
         self.cnn_pupil_segmentation = pupilSegmentationModel()
         self.cnn_pupil_segmentation.load_state_dict(
             torch.load(f"{weight_path}/resnet50.pt", map_location=self.device)
         )
-        self.cnn_pupil_segmentation = self.cnn_pupil_segmentation.to(
-            self.device)
+        self.cnn_pupil_segmentation = self.cnn_pupil_segmentation.to(self.device)
         self.cnn_if_opened = self.cnn_if_opened.to(self.device)
 
     def fit_tracker(self, dataset: PupilCoreDataset):
@@ -43,6 +43,12 @@ class GazeTracker:
             image_shape=image_shape,
             inital_z=inital_eye_center_z,
         )
+        eye_fitter = SingleEyeFitter(
+            focal_length=140,
+            pupil_radius=11.00762481689453,
+            initial_eye_z=280.6944328308105,
+            image_shape=(192, 192),
+        )
 
         with torch.no_grad():
             self.cnn_pupil_segmentation.eval()
@@ -56,8 +62,7 @@ class GazeTracker:
 
                     outputs = self.cnn_pupil_segmentation(inputs)
 
-                    image = np.transpose(
-                        inputs[0].cpu().numpy(), (1, 2, 0)).copy()
+                    image = np.transpose(inputs[0].cpu().numpy(), (1, 2, 0)).copy()
                     outputs_sig = torch.sigmoid(outputs["out"][0])
                     outputs_sig = np.transpose(
                         outputs_sig.cpu().numpy(), (1, 2, 0)
@@ -70,6 +75,8 @@ class GazeTracker:
                             unprojected_vectors,
                             unprojected_centers,
                         ) = self.eye_modeling.two_circle_unprojection(ellipse)
+                        print(unprojected_vectors, unprojected_centers)
+                        print(eye_fitter.unproject_single_observation(outputs_sig))
 
                         # this part is for visalization
                         # ============================================================
@@ -93,14 +100,12 @@ class GazeTracker:
             self.eye_modeling.sphere_centre_estimate()
 
         self.eye_modeling.sphere_radius_estimate()
-        print(
-            f"estimated 2D eye center -> {self.eye_modeling.estimated_eye_center_2D}")
-        print(
-            f"estimated 3D eye center -> {self.eye_modeling.estimated_eye_center_3D}")
-        print(
-            f"estimated eye radius -> {self.eye_modeling.estimated_sphere_radius}")
+        print(f"estimated 2D eye center -> {self.eye_modeling.estimated_eye_center_2D}")
+        print(f"estimated 3D eye center -> {self.eye_modeling.estimated_eye_center_3D}")
+        print(f"estimated eye radius -> {self.eye_modeling.estimated_sphere_radius}")
         print(f"avarage eye radius in px -> {eye_radius_in_px}")
         print(f"average pupil radius in px -> {estimated_pupil_radius_in_px}")
+        print(f"initianl_eye_z -> {inital_eye_center_z}")
 
     def track_gaze_vector(self, dataset: PupilCoreDataset):
         dataloader = get_one_dataloader(dataset)
@@ -134,8 +139,7 @@ class GazeTracker:
                         )
                         # this part is for visalization
                         # ============================================================
-                        image = np.transpose(
-                            inputs[0].cpu().numpy(), (1, 2, 0)).copy()
+                        image = np.transpose(inputs[0].cpu().numpy(), (1, 2, 0)).copy()
                         image = visualise_pupil.draw_point(
                             image, self.eye_modeling.estimated_eye_center_3D[:2]
                         )
@@ -161,8 +165,7 @@ class GazeTracker:
                                     pupil_normal,
                                     pupil_radius,
                                 ) = self.eye_modeling.consistent_pupil_estimate(
-                                    np.array(
-                                        filtered_pos).ravel().reshape(3, 1)
+                                    np.array(filtered_pos).ravel().reshape(3, 1)
                                 )
                                 print(
                                     f" new pupil: position-{pupil_pos}, normal_vector-{pupil_normal}, pupil_radius-{pupil_radius}"
