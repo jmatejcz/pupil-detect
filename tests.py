@@ -16,7 +16,7 @@ dataset = PupilCoreDatasetGazeTrack(
     f"{PATH}video5_eye0_pupildata.csv",
     f"{PATH}video5_eye1_video.avi",
     f"{PATH}video5_eye1_pupildata.csv",
-    dataset_len=1000,
+    dataset_len=3000,
 )
 WEIGHT_PATH = "pupil-detect/models/weights"
 # WEIGHT_PATH = "models/weights"

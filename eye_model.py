@@ -1,5 +1,5 @@
 from unprojection import unproject_eye_circle
-from utils import calc_intersection, calc_sphere_line_intersection
+from utils import calc_intersection, calc_sphere_line_intersection, projection
 import numpy as np
 
 
@@ -13,8 +13,14 @@ class EyeModeling:
     """
 
     def __init__(self, focal_len, pupil_radius, image_shape, inital_z) -> None:
+        """_summary_
+
+        :param focal_len: focal length of camera in pixels
+        :param pupil_radius: in pixels
+        :param inital_z: initial middle of the eye 'z' coord
+        """
         self.initial_pupil_radius = pupil_radius  # pixels
-        self.focal_len = focal_len
+        self.focal_len = focal_len  # in pixels
         self.camera_vertex = [0, 0, -focal_len]  # ???
         self.image_shape = image_shape
 
@@ -73,7 +79,7 @@ class EyeModeling:
         normal_vectors_2D = np.vstack(
             (
                 [vectors[0][0:2] for vectors in self.disc_normals],
-                # [vectors[1][0:2] for vectors in self.disc_normals],
+                [vectors[1][0:2] for vectors in self.disc_normals],
             )
         )
 
@@ -85,13 +91,11 @@ class EyeModeling:
         disc_centers_2D = np.vstack(
             (
                 [centers[0][0:2] for centers in self.disc_centers],
-                # [centers[1][0:2] for centers in self.disc_centers],
+                [centers[1][0:2] for centers in self.disc_centers],
             )
         )
-
         # pupil centers from image
         # disc_centers_2D = np.vstack((self.ellipse_centers, self.ellipse_centers))
-
         self.estimated_eye_center_2D = calc_intersection(
             normal_vectors_2D, disc_centers_2D
         )
@@ -119,23 +123,31 @@ class EyeModeling:
         filtered_disc_centers = []
         for i in range(len(disc_normals)):
 
-            n = disc_normals[i][0][0:2]
-            c = self.estimated_eye_center_2D
-            p = disc_centers[i][0][0:2]
-            result = n * (c - p)
-            if result[0] > 0 and result[1] > 0:
+            # n = disc_normals[i][0][0:2]
+            # c = self.estimated_eye_center_2D
+            # p = disc_centers[i][0][0:2]
+
+            # result = n * (c - p)
+            # print(result)
+            projected_centre = projection(self.estimated_eye_center_3D, self.focal_len)
+            projected_normal = projection(
+                disc_normals[i][0] + disc_centers[i][0], self.focal_len
+            )
+            projected_pos = projection(disc_centers[i][0], self.focal_len)
+            if (
+                np.dot(projected_normal.T, projected_pos - projected_centre).ravel()[0]
+                > 0
+            ):
+                # if result[0] > 0 and result[1] > 0:
                 filtered_disc_normals.append(disc_normals[i][0])
                 filtered_disc_centers.append(disc_centers[i][0])
-
-            n = disc_normals[i][1][0:2]
-            c = self.estimated_eye_center_2D
-            p = disc_centers[i][1][0:2]
-            result = n * (c - p)
-            if result[0] > 0 and result[1] > 0:
-
+            else:
                 filtered_disc_normals.append(disc_normals[i][1])
                 filtered_disc_centers.append(disc_centers[i][1])
-
+            # n = disc_normals[i][1][0:2]
+            # c = self.estimated_eye_center_2D
+            # p = disc_centers[i][1][0:2]
+            # result = n * (c - p)
         return filtered_disc_normals, filtered_disc_centers
 
     def sphere_radius_estimate(self):
@@ -163,7 +175,7 @@ class EyeModeling:
                 self.filtered_disc_centers[i]
                 / np.linalg.norm(self.filtered_disc_centers[i]),
             ]
-            # [0, 0, 0] is origin so disc center can albo be vector to itself
+            # [0, 0, 0] is origin so disc center can also be vector to itself
             centers = [self.estimated_eye_center_3D, self.filtered_disc_centers[i]]
             p = calc_intersection(vectors, centers)
 
@@ -196,7 +208,7 @@ class EyeModeling:
         )
         # we take nearest of 2 points
         if intersection:
-            print(f"intersection: {intersection}")
+            # print(f"intersection: {intersection}")
             s = min(intersection)
             p_prime = s * u
             n_prime = (p_prime - c) / sphere_r
