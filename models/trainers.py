@@ -10,7 +10,11 @@ import matplotlib.pyplot as plt
 
 class PupilSegmentationTrainer:
     def __init__(
-        self, model, dataset: PupilCoreDataset, dataset_len: int = None
+        self,
+        model,
+        dataset: PupilCoreDataset,
+        dataset_len: int = None,
+        weights_path: str = None,
     ) -> None:
         if not dataset_len:
             dataset_len = len(PupilCoreDataset)
@@ -21,8 +25,8 @@ class PupilSegmentationTrainer:
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             self.optimizer, mode="min", patience=3, verbose=True
         )
-        self.weights_path = "models/weights/resnet50.pt"
-        self.model.load_state_dict(torch.load(self.weights_path))
+        if weights_path:
+            self.model.load_state_dict(torch.load(weights_path))
 
     def get_dice_score(self, pred, mask):
         pred = np.where(pred > 0.4, 1, 0)
@@ -90,7 +94,7 @@ class PupilSegmentationTrainer:
                     self.best_loss = epoch_loss
                     best_model = copy.deepcopy(self.model.state_dict())
 
-                    # torch.save(best_model, "models/weights/resnet50.pt")
+                    torch.save(best_model, "models/weights/resnet50.pt")
 
     def eval_model(self, device):
         self.model.eval()
@@ -259,7 +263,6 @@ class IfOpenedTrainer:
             ax.xaxis.set_ticklabels(["1", "0"])
             ax.yaxis.set_ticklabels(["1", "0"])
             plt.show()
-            # plt.savefig(f"{path_to_save}/cf_precents")
 
             print(
                 f"acc: {acc}, precision: {precision}, recall: {recall}, f1_score: {f1_score}"

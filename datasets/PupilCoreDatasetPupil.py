@@ -157,14 +157,14 @@ class PupilCoreDatasetTraining(PupilCoreDataset):
 
     # ================= for pupil segmentation ===================
     def __getitem__(self, idx):
-        image0 = self.eye0_frames[idx]
-        mask0 = self.eye0_masks[idx]
-        opened0 = self.eye_labels_df.at[idx, "opened"]
+        image = self.eye_frames[idx]
+        mask = self.eye_masks[idx]
+        opened = self.eye_labels_df.at[idx, "opened"]
         T = transforms.Compose([transforms.ToTensor()])
-        image0 = T(image0)
-        mask0 = T(mask0)
+        image = T(image)
+        mask = T(mask)
 
-        return (image0, mask0, opened0)
+        return (image, mask, opened)
 
 
 class PupilCoreDatasetGazeTrack(PupilCoreDataset):
@@ -188,11 +188,13 @@ class PupilCoreDatasetGazeTrack(PupilCoreDataset):
 
     # ================= for gaze tracking ===================
     def __getitem__(self, idx):
-        image0 = self.eye0_frames[idx]
-        image1 = self.eye0_frames[idx]
-
+        try:
+            image0 = self.eye0_frames[idx]
+            image1 = self.eye1_frames[idx]
+        except:
+            print(idx)
         opened0 = self.eye0_labels_df.at[idx, "opened"]
-        opened1 = self.eye0_labels_df.at[idx, "opened"]
+        opened1 = self.eye1_labels_df.at[idx, "opened"]
 
         T = transforms.Compose([transforms.ToTensor()])
         image0 = T(image0)

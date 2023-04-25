@@ -1,5 +1,6 @@
 from unprojection import unproject_eye_circle
 from utils import calc_intersection, calc_sphere_line_intersection, projection
+from exceptions import NoIntersection
 import numpy as np
 
 
@@ -217,5 +218,3 @@ class EyeModeling:
             r_prime = (self.initial_pupil_radius / pupil_pos[2]) * p_prime[2]
 
             return p_prime, n_prime, r_prime
-        else:
-            print("no intersection")

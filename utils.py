@@ -1,9 +1,7 @@
-import time
-import copy
 import torch
-import matplotlib.pyplot as plt
 import cv2
 import numpy as np
+from exceptions import NoEllipseFound, NoIntersection
 
 
 def evaluate_pupil(model, dataloaders, device):
@@ -19,18 +17,16 @@ def evaluate_pupil(model, dataloaders, device):
 
 
 def fit_ellipse(mask):
-    ret, thresh = cv2.threshold(mask, 0.5, 1, cv2.THRESH_BINARY)
+    _, thresh = cv2.threshold(mask, 0.5, 1, cv2.THRESH_BINARY)
     thresh = np.asarray(thresh, dtype=np.uint8)
 
     countours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    # print(countours)
     try:
-        # if len(countours) > 0:
         cnt = [i[0] for i in countours[0]]
         cnt = np.asarray(cnt)
         return cv2.fitEllipse(cnt)
-    except Exception as err:
-        pass
+    except:
+        NoEllipseFound("No ellipse found in mask")
 
 
 def draw_ellipse(image, ellipse):
@@ -92,10 +88,9 @@ def calc_sphere_line_intersection(u, o, c, r):
     # print(u)
     delta = np.square(np.dot(u.T, (o - c))) - np.dot((o - c).T, (o - c)) + np.square(r)
     if delta < 0:
-        print("delta less than 0")
+        raise NoIntersection("No intersection between line and eye sphere")
     else:
         d = -np.dot(u.T, (o - c))
-        # print(d, delta)
         d1 = d + np.sqrt(delta)
         d2 = d - np.sqrt(delta)
         return [d1, d2]
