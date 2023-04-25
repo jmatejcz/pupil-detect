@@ -13,14 +13,14 @@ from visualization.visualise_pupil import draw_normal_vectors_2D
 # ======================================================================
 # TRAINING OF CNNS =====================================================
 DATASET_PATH = "datasets/PupilCoreDataset/"
-DATASET_LEN_TO_USE = 3000
-dataset = PupilCoreDatasetTraining(
-    f"{DATASET_PATH}video5_eye0_video.avi",
-    f"{DATASET_PATH}video5_eye0_pupildata.csv",
-    f"{DATASET_PATH}video5_eye1_video.avi",
-    f"{DATASET_PATH}video5_eye1_pupildata.csv",
-    DATASET_LEN_TO_USE,
-)
+DATASET_LEN_TO_USE = 3600
+# dataset = PupilCoreDatasetTraining(
+#     f"{DATASET_PATH}video5_eye0_video.avi",
+#     f"{DATASET_PATH}video5_eye0_pupildata.csv",
+#     f"{DATASET_PATH}video5_eye1_video.avi",
+#     f"{DATASET_PATH}video5_eye1_pupildata.csv",
+#     DATASET_LEN_TO_USE,
+# )
 dataset_1 = PupilCoreDatasetTraining(
     f"{DATASET_PATH}1/eye0_video.avi",
     f"{DATASET_PATH}1/eye0_pupildata.csv",
@@ -58,7 +58,7 @@ dataset_5 = PupilCoreDatasetTraining(
 )
 
 ultimate_dataset = torch.utils.data.ConcatDataset(
-    [dataset, dataset_1, dataset_2, dataset_3, dataset_4, dataset_5]
+    [dataset_1, dataset_2, dataset_3, dataset_4, dataset_5]
 )
 # dataset.load_masks(
 #     "datasets/PupilCoreDataset/created_masks/eye0",
@@ -79,8 +79,8 @@ pupil_trainer = PupilSegmentationTrainer(
     weights_path="models/weights/resnet50.pt",
 )
 
-if_opened_trainer.train(device=device, num_epochs=5)
-if_opened_trainer.eval_model(device=device)
+# if_opened_trainer.train(device=device, num_epochs=5)
+# if_opened_trainer.eval_model(device=device)
 
-# pupil_trainer.train(device=device, num_epochs=2)
-# pupil_trainer.eval_model(device=device)
+pupil_trainer.train(device=device, num_epochs=3)
+pupil_trainer.eval_model(device=device)

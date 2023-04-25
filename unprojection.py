@@ -1,21 +1,15 @@
 import numpy as np
+import warnings
 
 
 def get_general_equation_ellipse_coefficients(x, y, a, b, rot_angle):
     """https://en.wikipedia.org/wiki/Ellipse#General_ellipse
 
     :param x: x coord, of pupil centre
-    :type x: _type_
     :param y: y coord, of pupil centre
-    :type y: _type_
     :param a: minor axis of pupil
-    :type a: _type_
     :param b: minor axis of pupil
-    :type b: _type_
     :param rot_angle: rotation angle of ellipse
-    :type rot_angle: _type_
-    :return: _description_
-    :rtype: _type_
     """
     A = (a**2) * (np.sin(rot_angle) ** 2) + (b**2) * (np.cos(rot_angle) ** 2)
     B = 2 * ((b**2) - (a**2)) * np.sin(rot_angle) * np.cos(rot_angle)
@@ -148,7 +142,7 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
         where x,y -> ellipse center, a,b -> axis, rot_angle -> rotation angle
 
     """
-
+    warnings.filterwarnings("error")
     A, B, C, D, E, F = get_general_equation_ellipse_coefficients(*ellipse)
     # step 1)
     # (1) in algorithm paper
@@ -184,6 +178,7 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
     )
 
     # now we find the roots of polynominal with above coefficient
+
     lambda1, lambda2, lambda3 = np.roots(
         [
             lambda_coefficient_1,
@@ -197,7 +192,10 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
     # The coefficients of the equation of the circular-feature plane
     # (27) in algorithm paper
     # 3 cases occur
-    l, m, n = get_plane_coefiicient(lambda1, lambda2, lambda3)
+    try:
+        l, m, n = get_plane_coefiicient(lambda1, lambda2, lambda3)
+    except RuntimeWarning:
+        breakpoint()
 
     # find elements of a rotational transformation
     # (8) , (12) in algorithm paper
@@ -233,7 +231,10 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
 
     # (14) in algorithm paper
     T2 = np.eye(4)
-    T2[0:3, 3] = -(u * li + v * mi + w * ni) / np.array([lambda1, lambda2, lambda3])
+    try:
+        T2[0:3, 3] = -(u * li + v * mi + w * ni) / np.array([lambda1, lambda2, lambda3])
+    except:
+        print(ellipse)
 
     # (19) in algorith paper
     T3_pos = calT3(l[0], m[0], n[0])

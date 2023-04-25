@@ -6,6 +6,7 @@ from datasets.PupilCoreDatasetPupil import PupilCoreDataset
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from visualization.visualise_pupil import draw_ellipse
 
 
 class PupilSegmentationTrainer:
@@ -21,9 +22,9 @@ class PupilSegmentationTrainer:
         self.model = model
         self.dataloaders = get_dataloaders(dataset, dataset_len, train_split=0.8)
         self.criterion = torch.nn.BCEWithLogitsLoss()
-        self.optimizer = torch.optim.Adam(model.parameters(), lr=0.0005)
+        self.optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-            self.optimizer, mode="min", patience=3, verbose=True
+            self.optimizer, mode="min", patience=2, verbose=True
         )
         if weights_path:
             self.model.load_state_dict(torch.load(weights_path))
@@ -37,7 +38,6 @@ class PupilSegmentationTrainer:
         pred = np.where(pred > 0.4, 1, 0)
         intersection = (pred * mask).sum()
         union = pred.sum() + mask.sum() - intersection
-        # print(intersection, union)
         return intersection / union
 
     def train(self, device, num_epochs: int) -> None:
@@ -107,17 +107,11 @@ class PupilSegmentationTrainer:
                     inputs = inputs.to(device)
                     outputs = self.model(inputs)["out"][0]
                     pred = torch.sigmoid(outputs)
-                    # pred_soft = torch.nn.functional.softmax(outputs["out"][0], dim=1)
-
-                    # print(pred_soft.min(), pred_soft.max().item())
-                    # print(pred.min().item(), pred.max().item())
 
                     pred = pred.cpu().numpy()
                     mask = mask.cpu().numpy()
                     outputs = outputs.cpu().numpy()
-                    # image = np.transpose(pred, (1, 2, 0)).copy()
-                    # plt.imshow(image)
-                    # plt.show()
+
                     dice_scores.append(self.get_dice_score(outputs, mask))
                     iou_scores.append(self.get_IoU(outputs, mask))
 
@@ -128,7 +122,11 @@ class PupilSegmentationTrainer:
 
 class IfOpenedTrainer:
     def __init__(
-        self, model, dataset: PupilCoreDataset, dataset_len: int = None
+        self,
+        model,
+        dataset: PupilCoreDataset,
+        dataset_len: int = None,
+        weights_path: str = None,
     ) -> None:
         if not dataset_len:
             dataset_len = len(PupilCoreDataset)
@@ -141,8 +139,8 @@ class IfOpenedTrainer:
             self.optimizer, step_size=7, gamma=0.1
         )
 
-        self.weights_path = "models/weights/squeeznet1_1.pt"
-        self.model.load_state_dict(torch.load(self.weights_path))
+        if weights_path:
+            self.model.load_state_dict(torch.load(weights_path))
 
     def train(self, device, num_epochs: int) -> None:
         self.model = self.model.to(device)
@@ -162,7 +160,6 @@ class IfOpenedTrainer:
                 running_loss = 0.0
                 running_corrects = 0
                 for i, (inputs, mask, opened) in enumerate(self.dataloaders[phase]):
-                    # print(inputs, mask)
                     inputs = inputs.to(device)
                     opened = opened.to(device)
                     self.optimizer.zero_grad()
@@ -171,8 +168,6 @@ class IfOpenedTrainer:
                     _, preds = torch.max(outputs, 1)
                     outputs = outputs.to(device)
                     loss = self.criterion(outputs, opened)
-                    # print(loss)
-                    # print(pred)
                     if phase == "train":
                         loss.backward()
                         self.optimizer.step()

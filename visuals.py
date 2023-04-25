@@ -30,16 +30,8 @@ cnn_if_opened.load_state_dict(torch.load("models/weights/squeeznet1_1.pt"))
 
 cnn_pupil_segmentation = pupilSegmentationModel()
 cnn_pupil_segmentation.load_state_dict(torch.load("models/weights/resnet50.pt"))
-# print(model)
-# print(cnn_if_opened)
+
 dataloader = get_one_dataloader(dataset)
-
-# for i, (inputs, opened) in enumerate(dataset):
-
-#     if i % 100 == 0:
-#         image = np.transpose(inputs[0].cpu().numpy(), (1, 2, 0)).copy()
-#         #     model.eval()
-#     fig = plt.figure()
 
 
 def if_opened_image(inputs):

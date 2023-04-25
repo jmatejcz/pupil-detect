@@ -45,7 +45,6 @@ class PupilCoreDataset(torch.utils.data.Dataset):
     def load_masks(self, eye0_path, eye1_path):
 
         for i in range(self.dataset_len):
-
             mask = cv2.imread(f"{eye0_path}/{i}.png", cv2.IMREAD_GRAYSCALE)
             self.eye0_masks.append(mask)
 
@@ -79,7 +78,7 @@ class PupilCoreDataset(torch.utils.data.Dataset):
             )
             ellipse = np.asarray(ellipse, dtype=np.float32)
             ellipse = cv2.cvtColor(ellipse, cv2.COLOR_RGB2GRAY)
-            ret, b_ellipse = cv2.threshold(ellipse, 1, 1, cv2.THRESH_BINARY)
+            _, b_ellipse = cv2.threshold(ellipse, 1, 1, cv2.THRESH_BINARY)
             b_ellipse = b_ellipse.reshape(b_ellipse.shape + (1,))
 
             self.eye0_masks.append(b_ellipse)
@@ -108,17 +107,15 @@ class PupilCoreDataset(torch.utils.data.Dataset):
             )
             ellipse = np.asarray(ellipse, dtype=np.float32)
             ellipse = cv2.cvtColor(ellipse, cv2.COLOR_RGB2GRAY)
-            ret, b_ellipse = cv2.threshold(ellipse, 1, 255, cv2.THRESH_BINARY)
+            _, b_ellipse = cv2.threshold(ellipse, 1, 255, cv2.THRESH_BINARY)
             b_ellipse = b_ellipse.reshape(b_ellipse.shape + (1,))
             self.eye1_masks.append(b_ellipse)
 
     def save_masks(self, path):
         for i, mask in enumerate(self.eye0_masks):
-
             cv2.imwrite(f"{path}/eye0/{i}.png", mask)
 
         for i, mask in enumerate(self.eye1_masks):
-
             cv2.imwrite(f"{path}/eye1/{i}.png", mask)
 
     def __getitem__(self, idx):

@@ -14,8 +14,7 @@ class EyeModeling:
     """
 
     def __init__(self, focal_len, pupil_radius, image_shape, inital_z) -> None:
-        """_summary_
-
+        """
         :param focal_len: focal length of camera in pixels
         :param pupil_radius: in pixels
         :param inital_z: initial middle of the eye 'z' coord
@@ -75,28 +74,19 @@ class EyeModeling:
 
         """
         # reduction to 2D, and taking pos normal vector
-        # TODO można brac oba vektory skoro sa rownoległe ?
-        # wlasnie chyba nie sa z jakiegos powodu
         normal_vectors_2D = np.vstack(
             (
                 [vectors[0][0:2] for vectors in self.disc_normals],
                 [vectors[1][0:2] for vectors in self.disc_normals],
             )
         )
-
-        # TODO tutaj próbowałem 2 podejść, albo jako początek wektora brać przewidziane disc centers
-        # albo ellipse centers tam gdzie sa na obrazie
-        # raczej z przewidzianymi disc centers wychodza lepsze wyniki
-
-        # predicted centers 3D
+        # predicted centers 2D
         disc_centers_2D = np.vstack(
             (
                 [centers[0][0:2] for centers in self.disc_centers],
                 [centers[1][0:2] for centers in self.disc_centers],
             )
         )
-        # pupil centers from image
-        # disc_centers_2D = np.vstack((self.ellipse_centers, self.ellipse_centers))
         self.estimated_eye_center_2D = calc_intersection(
             normal_vectors_2D, disc_centers_2D
         )
@@ -122,14 +112,8 @@ class EyeModeling:
         """
         filtered_disc_normals = []
         filtered_disc_centers = []
+
         for i in range(len(disc_normals)):
-
-            # n = disc_normals[i][0][0:2]
-            # c = self.estimated_eye_center_2D
-            # p = disc_centers[i][0][0:2]
-
-            # result = n * (c - p)
-            # print(result)
             projected_centre = projection(self.estimated_eye_center_3D, self.focal_len)
             projected_normal = projection(
                 disc_normals[i][0] + disc_centers[i][0], self.focal_len
@@ -139,16 +123,12 @@ class EyeModeling:
                 np.dot(projected_normal.T, projected_pos - projected_centre).ravel()[0]
                 > 0
             ):
-                # if result[0] > 0 and result[1] > 0:
                 filtered_disc_normals.append(disc_normals[i][0])
                 filtered_disc_centers.append(disc_centers[i][0])
             else:
                 filtered_disc_normals.append(disc_normals[i][1])
                 filtered_disc_centers.append(disc_centers[i][1])
-            # n = disc_normals[i][1][0:2]
-            # c = self.estimated_eye_center_2D
-            # p = disc_centers[i][1][0:2]
-            # result = n * (c - p)
+
         return filtered_disc_normals, filtered_disc_centers
 
     def sphere_radius_estimate(self):
@@ -159,7 +139,6 @@ class EyeModeling:
         Then we can calculate intersection between (camera_vertex, p)
         and (c,p) to estimate sphere radius
         """
-
         (
             self.filtered_disc_normals,
             self.filtered_disc_centers,
@@ -167,10 +146,8 @@ class EyeModeling:
 
         # now we can calculate intersection
         # we take mean from all intersections
-
         radiuses = []
         for i in range(len(self.filtered_disc_normals)):
-            # TODO czy na pewno vektor to p?
             vectors = [
                 self.filtered_disc_normals[i],
                 self.filtered_disc_centers[i]
@@ -209,7 +186,6 @@ class EyeModeling:
         )
         # we take nearest of 2 points
         if intersection:
-            # print(f"intersection: {intersection}")
             s = min(intersection)
             p_prime = s * u
             n_prime = (p_prime - c) / sphere_r

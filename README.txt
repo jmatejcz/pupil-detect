@@ -1,3 +1,5 @@
+
+
 Żeby wytrenować sieci dla wybranych danych odpowiednio należy zmodyfikować i odpalić plik train.py (wyśle Panu wagi wytrenowanego juz modelu, żeby nie musiał Pan tracic na to czasu).
 
 Żeby odpalić własciwy gaze_tracking , uruchomic plik tests.py, na razie na 1 datasecie który od Pana dostałem(nie trenowałem jeszcze sieci na pozostałych).

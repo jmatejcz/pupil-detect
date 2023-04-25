@@ -2,8 +2,9 @@ from torchvision import models
 from torch import nn
 from torchvision.models.squeezenet import SqueezeNet1_1_Weights
 
-# 1st model for checking if eye is opened
+
 def ifOpenedModel():
+    # model for checking if eye is opened
     num_classes = 2
     model = models.squeezenet1_1(weights=SqueezeNet1_1_Weights.DEFAULT)
     final_conv = nn.Conv2d(512, num_classes, kernel_size=1)
