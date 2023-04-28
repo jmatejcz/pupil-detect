@@ -39,7 +39,7 @@ class PupilCoreDataset(torch.utils.data.Dataset):
         self.eye1_frames = get_frames_from_video(self.eye1_video_path, dataset_len)
         self.eye0_masks = []
         self.eye1_masks = []
-        self.focal_len = 140
+        self.focal_len = 283
         self.image_shape = self.eye0_frames[0].shape
 
     def load_masks(self, eye0_path, eye1_path):
@@ -51,26 +51,46 @@ class PupilCoreDataset(torch.utils.data.Dataset):
             mask = cv2.imread(f"{eye1_path}/{i}.png", cv2.IMREAD_GRAYSCALE)
             self.eye1_masks.append(mask)
 
+    def get_ellipses_from_data(self, i: int, eye: int) -> tuple:
+        """Returns ellipse for given eye in certain frame, from numerical data
+
+        :param i: number of frame
+        :type i: int
+        :param eye: which eye , 0-right, 1-left
+        :type eye: int
+        :return: ellipse
+        :rtype: tuple
+        """
+        if eye == 0:
+            df = self.eye0_labels_df
+        elif eye == 1:
+            df = self.eye1_labels_df
+        pupil_center = [
+            int(df.at[i, "pupil_center_x_coord"]),
+            int(df.at[i, "pupil_center_y_coord"]),
+        ]
+        pupil_axes = [
+            int(df.at[i, "pupil_axis_1"]),
+            int(df.at[i, "pupil_axis_2"]),
+        ]
+        angle = df.at[i, "elipse_angle"]
+
+        return (pupil_center, pupil_axes, angle)
+
     def get_pupil_masks(self):
         self.eye0_masks = []
         self.eye1_masks = []
         for i, image in enumerate(self.eye0_frames):
-            pupil_center = np.array(
-                [
-                    int(self.eye0_labels_df.at[i, "pupil_center_x_coord"]),
-                    int(self.eye0_labels_df.at[i, "pupil_center_y_coord"]),
-                ]
+            pupil_center, pupil_axes, pupil_angle = self.get_ellipses_from_data(
+                i=i, eye=0
             )
-            pupil_axes = (
-                int(self.eye0_labels_df.at[i, "pupil_axis_1"] // 2),
-                int(self.eye0_labels_df.at[i, "pupil_axis_2"] // 2),
-            )
+            pupil_axes = [ax // 2 for ax in pupil_axes]
             mask = np.zeros(image.shape)
             ellipse = cv2.ellipse(
                 img=mask,
                 center=pupil_center,
                 axes=pupil_axes,
-                angle=self.eye0_labels_df.at[i, "elipse_angle"],
+                angle=pupil_angle,
                 startAngle=0,
                 endAngle=360,
                 color=(255, 255, 255),
@@ -84,22 +104,16 @@ class PupilCoreDataset(torch.utils.data.Dataset):
             self.eye0_masks.append(b_ellipse)
 
         for i, image in enumerate(self.eye1_frames):
-            pupil_center = np.array(
-                [
-                    int(self.eye1_labels_df.at[i, "pupil_center_x_coord"]),
-                    int(self.eye1_labels_df.at[i, "pupil_center_y_coord"]),
-                ]
+            pupil_center, pupil_axes, pupil_angle = self.get_ellipses_from_data(
+                i=i, eye=1
             )
-            pupil_axes = (
-                int(self.eye1_labels_df.at[i, "pupil_axis_1"] // 2),
-                int(self.eye1_labels_df.at[i, "pupil_axis_2"] // 2),
-            )
+            pupil_axes = [ax // 2 for ax in pupil_axes]
             mask = np.zeros(image.shape)
             ellipse = cv2.ellipse(
                 img=mask,
                 center=pupil_center,
                 axes=pupil_axes,
-                angle=self.eye1_labels_df.at[i, "elipse_angle"],
+                angle=pupil_angle,
                 startAngle=0,
                 endAngle=360,
                 color=(255, 255, 255),

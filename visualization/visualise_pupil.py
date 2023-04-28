@@ -43,7 +43,7 @@ def draw_normal_vectors_2D(image, start_point, vector, color):
     return img
 
 
-def draw_ellipse(image, ellipse):
+def draw_ellipse(image, ellipse, color):
     img = cv2.ellipse(
         image,
         (int(ellipse[0][0]), int(ellipse[0][1])),
@@ -51,7 +51,7 @@ def draw_ellipse(image, ellipse):
         int(ellipse[2]),
         0,
         360,
-        (0, 0, 255),
+        color,
     )
     return img
 
@@ -60,6 +60,6 @@ def draw_point(image, point):
     x, y = point
     shape = 192 / 2
     img = cv2.circle(
-        image, center=(int(x + shape), int(y + shape)), radius=2, color=(0, 255, 0)
+        image, center=(int(x + shape), int(y + shape)), radius=5, color=(0, 0, 0)
     )
     return img

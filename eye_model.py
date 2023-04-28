@@ -1,5 +1,10 @@
 from unprojection import unproject_eye_circle
-from utils import calc_intersection, calc_sphere_line_intersection, projection
+from utils import (
+    calc_intersection,
+    calc_sphere_line_intersection,
+    projection,
+    calc_angle_between_2D_vectors,
+)
 from exceptions import NoIntersection
 import numpy as np
 
@@ -26,7 +31,8 @@ class EyeModeling:
 
         self.disc_normals = []
         self.disc_centers = []
-        self.ellipse_centers = []
+        self.ellipses = []
+        # self.ellipse_centers = []
 
         self.initial_z_of_eye_center = inital_z
 
@@ -41,10 +47,17 @@ class EyeModeling:
         x, y = ellipse[0]
         a, b = ellipse[1]
         rot = ellipse[2]
+
         # need to switch for coordinates with respect to camera in the middle
         # so (0,0) point is in the middle
         x -= self.image_shape[1] / 2
         y -= self.image_shape[0] / 2
+        self.ellipses.append(np.array([x, y, *ellipse[1], ellipse[2]]))
+        if x == 0.0:
+            x = 1.0
+        if y == 0.0:
+            y = 1.0
+
         (
             pupil_normal_pos,
             pupil_normal_neg,
@@ -59,7 +72,6 @@ class EyeModeling:
         unprojected_vectors = (pupil_normal_pos, pupil_normal_neg)
         unprojected_centers = (pupil_centre_pos, pupil_centre_neg)
 
-        self.ellipse_centers.append(np.array([x, y]))
         self.disc_normals.append(unprojected_vectors)
         self.disc_centers.append(unprojected_centers)
 
@@ -73,20 +85,24 @@ class EyeModeling:
         shape -> (2,1)
 
         """
-        # reduction to 2D, and taking pos normal vector
-        normal_vectors_2D = np.vstack(
-            (
-                [vectors[0][0:2] for vectors in self.disc_normals],
-                [vectors[1][0:2] for vectors in self.disc_normals],
+        normal_vectors_2D = []
+        disc_centers_2D = []
+        # filter ellipses to take these with bigger axis length difference
+        for i, ellipse in enumerate(self.ellipses):
+            angle = calc_angle_between_2D_vectors(
+                vec1=self.disc_normals[i][0][0:2], vec2=self.disc_normals[i][1][0:2]
             )
-        )
-        # predicted centers 2D
-        disc_centers_2D = np.vstack(
-            (
-                [centers[0][0:2] for centers in self.disc_centers],
-                [centers[1][0:2] for centers in self.disc_centers],
-            )
-        )
+            # if abs(angle) < 40 or abs(angle) > 165:
+
+            # reduction to 2D, and taking pos normal vector
+            normal_vectors_2D.append(self.disc_normals[i][0][0:2])
+            normal_vectors_2D.append(self.disc_normals[i][1][0:2])
+            # predicted centers 2D
+            # disc_centers_2D.append(self.disc_centers[i][0][0:2])
+            # disc_centers_2D.append(self.disc_centers[i][1][0:2])
+            disc_centers_2D.append(self.ellipses[i][0:2])
+            disc_centers_2D.append(self.ellipses[i][0:2])
+
         self.estimated_eye_center_2D = calc_intersection(
             normal_vectors_2D, disc_centers_2D
         )

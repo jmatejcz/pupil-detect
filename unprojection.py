@@ -142,7 +142,6 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
         where x,y -> ellipse center, a,b -> axis, rot_angle -> rotation angle
 
     """
-    warnings.filterwarnings("error")
     A, B, C, D, E, F = get_general_equation_ellipse_coefficients(*ellipse)
     # step 1)
     # (1) in algorithm paper
@@ -194,16 +193,19 @@ def unproject_eye_circle(camera_vertex, ellipse, radius=None):
     # 3 cases occur
     try:
         l, m, n = get_plane_coefiicient(lambda1, lambda2, lambda3)
-    except RuntimeWarning:
-        breakpoint()
+    except:
+        print(ellipse)
 
     # find elements of a rotational transformation
     # (8) , (12) in algorithm paper
     # one rotational coefficietns set per lambda
-    l1, m1, n1 = gen_rotation_transofrm_coefficents(lambda1, a, b, g, f, h)
-    l2, m2, n2 = gen_rotation_transofrm_coefficents(lambda2, a, b, g, f, h)
-    l3, m3, n3 = gen_rotation_transofrm_coefficents(lambda3, a, b, g, f, h)
-
+    try:
+        l1, m1, n1 = gen_rotation_transofrm_coefficents(lambda1, a, b, g, f, h)
+        l2, m2, n2 = gen_rotation_transofrm_coefficents(lambda2, a, b, g, f, h)
+        l3, m3, n3 = gen_rotation_transofrm_coefficents(lambda3, a, b, g, f, h)
+    except:
+        print(ellipse)
+        print(lambda1, a, b, g, f, h)
     # rotational transform matrix
     T1 = np.array([l1, l2, l3, 0, m1, m2, m3, 0, n1, n2, n3, 0, 0, 0, 0, 1]).reshape(
         4, 4

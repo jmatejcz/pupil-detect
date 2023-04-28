@@ -1,27 +1,33 @@
 import cv2
 import numpy as np
 from exceptions import NoEllipseFound, NoIntersection
+import math
 
 
 def fit_ellipse(mask):
-    _, thresh = cv2.threshold(mask, 0.9, 1, cv2.THRESH_BINARY)
+    _, thresh = cv2.threshold(mask, 0.7, 1, cv2.THRESH_BINARY)
     thresh = np.asarray(thresh, dtype=np.uint8)
 
     countours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     try:
-        cnt = [i[0] for i in countours[0]]
-        cnt = np.asarray(cnt)
-        ellipse = cv2.fitEllipse(cnt)
+        max_area = 0
+        for cnt in countours:
+            area = cv2.contourArea(cnt)
+            if area > max_area:
+                max_area = area
+                max_cnt = cnt
+
+        ellipse = cv2.fitEllipse(max_cnt)
         # catch all weird invalid shapes
         if (
             ellipse[2] == 90.0
             or ellipse[2] == 0.0
             or ellipse[1][0] == 1.0
-            or ellipse[1][0] == 1.0
+            or ellipse[1][0] == 0.0
         ):
             raise NoEllipseFound("Invalid ellipse shape")
         else:
-            return cv2.fitEllipse(cnt)
+            return ellipse
     except:
         raise NoEllipseFound("No ellipse found in mask")
 
@@ -37,6 +43,8 @@ def calc_intersection(vectors, centers):
     """
     R_sum = 0
     S_sum = 0
+    # normalize vectors
+    vectors / np.linalg.norm(vectors, axis=1, keepdims=True)
     dim = vectors[0].shape[0]
     I = np.eye(dim)
 
@@ -73,3 +81,11 @@ def calc_sphere_line_intersection(u, o, c, r):
 def projection(vector, focal_len):
     """Projects a 3D vector to image plane in 2D"""
     return vector[0:2] * focal_len / vector[2]
+
+
+def calc_angle_between_2D_vectors(vec1, vec2):
+    dot = vec2[0] * vec1[0] + vec1[1] * vec2[1]
+    det = vec1[0] * vec2[1] - vec1[1] * vec2[0]
+    angle_radians = math.atan2(det, dot)
+    angle_degrees = angle_radians * 57.295779513
+    return angle_degrees
