@@ -34,7 +34,7 @@ dataset_2 = PupilCoreDatasetGazeTrack(
 )
 WEIGHT_PATH = "models/weights"
 
-print(np.linalg.norm([192, 192]) / np.linalg.norm([3.6, 4.8]))
+print(np.linalg.norm([192, 192]) / np.linalg.norm([1.15, 1.15]))
 # calibrationMatrixValues([[140.0, 0.0, 96],
 #                         [0.0, 140.0, 96],
 #                         [0.0, 0.0, 1.0]], (192, 192), )
