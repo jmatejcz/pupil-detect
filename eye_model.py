@@ -170,12 +170,14 @@ class EyeModeling:
                 / np.linalg.norm(self.filtered_disc_centers[i]),
             ]
             # [0, 0, 0] is origin so disc center can also be vector to itself
-            centers = [self.estimated_eye_center_3D, self.filtered_disc_centers[i]]
+            # centers = [self.estimated_eye_center_3D, self.filtered_disc_centers[i]]
+            centers = [self.estimated_eye_center_3D, np.array([0, 0, 0])]
             p = calc_intersection(vectors, centers)
 
             radiuses.append(np.linalg.norm(p - self.estimated_eye_center_3D))
 
-        self.estimated_sphere_radius = np.mean(radiuses)
+        # self.estimated_sphere_radius = np.mean(radiuses)
+        self.estimated_sphere_radius = 10.5 * 166.95652173913044
         return np.mean(radiuses)
 
     def consistent_pupil_estimate(self, pupil_pos):

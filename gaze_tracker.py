@@ -11,26 +11,24 @@ import utils
 import numpy as np
 import csv
 import warnings
-import math
+import time
+import json
 
 warnings.filterwarnings("error")
 
 
 class GazeTracker:
     def __init__(self, weight_path: str, px_to_mm: int = 167) -> None:
-        self.device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.cnn_if_opened = ifOpenedModel()
         self.cnn_if_opened.load_state_dict(
-            torch.load(f"{weight_path}/squeeznet1_1.pt",
-                       map_location=self.device)
+            torch.load(f"{weight_path}/squeeznet1_1.pt", map_location=self.device)
         )
         self.cnn_pupil_segmentation = pupilSegmentationModel()
         self.cnn_pupil_segmentation.load_state_dict(
             torch.load(f"{weight_path}/resnet50.pt", map_location=self.device)
         )
-        self.cnn_pupil_segmentation = self.cnn_pupil_segmentation.to(
-            self.device)
+        self.cnn_pupil_segmentation = self.cnn_pupil_segmentation.to(self.device)
         self.cnn_if_opened = self.cnn_if_opened.to(self.device)
         self.MMTOPX = px_to_mm
         self.estimated_pupil_radius_in_px = 2 * self.MMTOPX
@@ -119,15 +117,13 @@ class GazeTracker:
                                 # this part is for visalization
                                 # ============================================================
 
-                                # if i % 25 == 0:
+                                # if i % 100 == 0:
 
                                 #     if x == 0:
-                                #         base_right_image = (
-                                #             visualise_pupil.draw_ellipse(
-                                #                 base_right_image,
-                                #                 ellipse,
-                                #                 (0, 0, 255),
-                                #             )
+                                #         base_right_image = visualise_pupil.draw_ellipse(
+                                #             base_right_image,
+                                #             ellipse,
+                                #             (0, 0, 255),
                                 #         )
                                 #         base_right_image = (
                                 #             self.draw_current_pupil_vectors(
@@ -137,12 +133,10 @@ class GazeTracker:
                                 #         )
 
                                 #     else:
-                                #         base_left_image = (
-                                #             visualise_pupil.draw_ellipse(
-                                #                 base_left_image,
-                                #                 ellipse,
-                                #                 (0, 0, 255),
-                                #             )
+                                #         base_left_image = visualise_pupil.draw_ellipse(
+                                #             base_left_image,
+                                #             ellipse,
+                                #             (0, 0, 255),
                                 #         )
                                 #         base_left_image = (
                                 #             self.draw_current_pupil_vectors(
@@ -167,8 +161,8 @@ class GazeTracker:
                                 # )
                                 # print(ellipse)
                                 # print(ellipse_from_data)
-                                # # plt.imshow(dataset.eye0_masks[i])
-                                # # plt.show()
+                                # plt.imshow(dataset.eye0_masks[i])
+                                # plt.show()
                                 # image = self.draw_current_pupil_vectors(
                                 #     image=image, eye_model=eye_model
                                 # )
@@ -181,22 +175,20 @@ class GazeTracker:
         for eye in self.eyes_models:
             eye.sphere_centre_estimate()
             eye.sphere_radius_estimate()
-            print(
-                f"estimated eye center in 2D -> {eye.estimated_eye_center_2D}")
-            print(
-                f"estimated eye center in 3D -> {eye.estimated_eye_center_3D}")
+            print(f"estimated eye center in 2D -> {eye.estimated_eye_center_2D}")
+            print(f"estimated eye center in 3D -> {eye.estimated_eye_center_3D}")
             print(f"estimated eye radius -> {eye.estimated_sphere_radius}")
 
-        base_right_image = visualise_pupil.draw_point(
-            base_right_image, self.eyes_models[0].estimated_eye_center_2D
-        )
-        base_left_image = visualise_pupil.draw_point(
-            base_left_image, self.eyes_models[1].estimated_eye_center_2D
-        )
-        plt.imshow(base_right_image)
-        plt.show()
-        plt.imshow(base_left_image)
-        plt.show()
+        # base_right_image = visualise_pupil.draw_point(
+        #     base_right_image, self.eyes_models[0].estimated_eye_center_2D
+        # )
+        # base_left_image = visualise_pupil.draw_point(
+        #     base_left_image, self.eyes_models[1].estimated_eye_center_2D
+        # )
+        # plt.imshow(base_right_image)
+        # plt.show()
+        # plt.imshow(base_left_image)
+        # plt.show()
 
     def track_gaze_vector(
         self,
@@ -208,21 +200,9 @@ class GazeTracker:
             eye.disc_normals = []
             eye.disc_centers = []
 
-        f = open(file=result_save_path, mode="w")
-        # add headers
-        headers = [
-            "Index",
-            "Right eye pupil position",
-            "Right eye gaze vector",
-            "Right eye radius",
-            "Right eye opened",
-            "Left eye pupil position",
-            "Left eye gaze vector",
-            "Left eye radius",
-            "Left eye opened",
-        ]
-        writer = csv.DictWriter(f, delimiter=",", fieldnames=headers)
-        writer.writeheader()
+        f = open(file=result_save_path, mode="w", newline="")
+        rows = []
+
         with torch.no_grad():
             for i, (inputs, opened) in enumerate(dataloader):
                 row = {}
@@ -236,6 +216,21 @@ class GazeTracker:
                     outputs = self.cnn_if_opened(_input)
                     _, preds = torch.max(outputs, 1)
 
+                    # if i % 50 == 0:
+                    #     image = np.transpose(_input[0].cpu().numpy(), (1, 2, 0)).copy()
+                    #     plt.imshow(image)
+                    #     plt.show()
+                    #     print(i)
+                    empty_pupil_result = {
+                        "Index": i,
+                        _side: {
+                            "eye pupil position": [0, 0, 0],
+                            "eye gaze vector": [0, 0, 0],
+                            "eye radius": 0,
+                            "eye opened": (preds.cpu().tolist())[0],
+                        },
+                    }
+
                     if preds[0]:
                         try:
                             outputs = self.cnn_pupil_segmentation(_input)
@@ -244,14 +239,6 @@ class GazeTracker:
                                 outputs_sig.cpu().numpy(), (1, 2, 0)
                             ).copy()
                             ellipse = utils.fit_ellipse(outputs_sig)
-
-                            empty_pupil_result = {
-                                "Index": i,
-                                f"{_side} eye pupil position": np.array([0, 0, 0]),
-                                f"{_side} eye gaze vector": np.array([0, 0, 0]),
-                                f"{_side} eye radius": 0,
-                                f"{_side} eye opened": (preds.cpu().numpy())[0],
-                            }
 
                             if ellipse:
                                 (
@@ -262,8 +249,7 @@ class GazeTracker:
                                     filtered_vector,
                                     filtered_pos,
                                 ) = eye_model.filter_vectors_towards_center(
-                                    [unprojected_vectors], [
-                                        unprojected_centers]
+                                    [unprojected_vectors], [unprojected_centers]
                                 )
                                 # this part is for visalization
                                 # # ============================================================
@@ -278,7 +264,9 @@ class GazeTracker:
                                 # image = self.draw_current_pupil_vectors(
                                 #     image=image, eye_model=eye_model
                                 # )
-                                # image = visualise_pupil.draw_ellipse(image, ellipse, (0, 0, 255))
+                                # image = visualise_pupil.draw_ellipse(
+                                #     image, ellipse, (0, 0, 255)
+                                # )
                                 # plt.imshow(image)
                                 # plt.show()
                                 # =============================================================
@@ -289,44 +277,33 @@ class GazeTracker:
                                             pupil_normal,
                                             pupil_radius,
                                         ) = eye_model.consistent_pupil_estimate(
-                                            np.array(
-                                                filtered_pos).ravel().reshape(3, 1)
+                                            np.array(filtered_pos).ravel().reshape(3, 1)
                                         )
-                                        # image = np.transpose(
-                                        # _input[0].cpu().numpy(), (1, 2, 0)
-                                        # ).copy()
-                                        # image = visualise_pupil.draw_point(
-                                        #     image, eye_model.estimated_eye_center_2D
-                                        # )
-                                        # image = self.draw_current_pupil_vectors(
-                                        #     image=image, eye_model=eye_model
-                                        # )
-                                        # image = visualise_pupil.draw_ellipse(image, ellipse, (0, 0, 255))
-                                        # plt.imshow(image)
-                                        # plt.show()
 
                                         row.update(
                                             {
                                                 "Index": i,
-                                                f"{_side} eye pupil position": pupil_pos.ravel().round(
-                                                    3
-                                                ),
-                                                f"{_side} eye gaze vector": pupil_normal.ravel().round(
-                                                    3
-                                                ),
-                                                f"{_side} eye radius": pupil_radius[
-                                                    0
-                                                ].round(3),
-                                                f"{_side} eye opened": (
-                                                    preds.cpu().numpy()
-                                                )[0],
+                                                _side: {
+                                                    f"eye pupil position": pupil_pos.ravel()
+                                                    .round(3)
+                                                    .tolist(),
+                                                    f"eye gaze vector": pupil_normal.ravel()
+                                                    .round(3)
+                                                    .tolist(),
+                                                    f"eye radius": pupil_radius[
+                                                        0
+                                                    ].round(3),
+                                                    f"eye opened": (
+                                                        preds.cpu().tolist()
+                                                    )[0],
+                                                },
                                             }
                                         )
                                         # This part is for visualization
-                                        if i % 100 == 0:
-                                            print(
-                                                f" new pupil: position-{pupil_pos}, normal_vector-{pupil_normal}, pupil_radius-{pupil_radius}"
-                                            )
+                                        # if i % 100 == 0:
+                                        #     print(
+                                        #         f" new pupil: position-{pupil_pos}, normal_vector-{pupil_normal}, pupil_radius-{pupil_radius}"
+                                        # )
                                     except NoIntersection as err:
                                         print(err.message)
                                         row.update(empty_pupil_result)
@@ -337,8 +314,10 @@ class GazeTracker:
                                 print("żaden z wektorów nie pokazuje od środka oka")
                         except NoEllipseFound as err:
                             print(err.message)
+                            row.update(empty_pupil_result)
                     else:
                         row.update(empty_pupil_result)
+                rows.append(row)
 
-                writer.writerow(row)
+        json.dump(rows, f)
         f.close()

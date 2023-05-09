@@ -60,6 +60,6 @@ def draw_point(image, point):
     x, y = point
     shape = 192 / 2
     img = cv2.circle(
-        image, center=(int(x + shape), int(y + shape)), radius=5, color=(0, 0, 0)
+        image, center=(int(x + shape), int(y + shape)), radius=3, color=(0, 0, 0)
     )
     return img
