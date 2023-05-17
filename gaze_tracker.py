@@ -22,11 +22,11 @@ class GazeTracker:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.cnn_if_opened = ifOpenedModel()
         self.cnn_if_opened.load_state_dict(
-            torch.load(f"{weight_path}/squeeznet1_1.pt", map_location=self.device)
+            torch.load(f"{weight_path}squeeznet1_1.pt", map_location=self.device)
         )
         self.cnn_pupil_segmentation = pupilSegmentationModel()
         self.cnn_pupil_segmentation.load_state_dict(
-            torch.load(f"{weight_path}/resnet50.pt", map_location=self.device)
+            torch.load(f"{weight_path}resnet50.pt", map_location=self.device)
         )
         self.cnn_pupil_segmentation = self.cnn_pupil_segmentation.to(self.device)
         self.cnn_if_opened = self.cnn_if_opened.to(self.device)
@@ -101,9 +101,8 @@ class GazeTracker:
                         ).copy()
                         try:
                             ellipse = utils.fit_ellipse(outputs_sig)
-                            # ellipse = dataset.get_ellipses_from_data(i, x)
-                            # and self.filter_ellipse(ellipse)
-                            if ellipse:
+
+                            if ellipse and self.filter_ellipse(ellipse):
                                 (
                                     unprojected_vectors,
                                     unprojected_centers,
@@ -174,7 +173,7 @@ class GazeTracker:
 
         for eye in self.eyes_models:
             eye.sphere_centre_estimate()
-            eye.sphere_radius_estimate()
+            eye.sphere_radius_estimate(fixed=True)
             print(f"estimated eye center in 2D -> {eye.estimated_eye_center_2D}")
             print(f"estimated eye center in 3D -> {eye.estimated_eye_center_3D}")
             print(f"estimated eye radius -> {eye.estimated_sphere_radius}")

@@ -1,14 +1,8 @@
-import matplotlib.pyplot as plt
 from datasets.PupilCoreDatasetPupil import PupilCoreDatasetTraining
 import torch
-from eye_model import EyeModeling
-from torchvision.models.segmentation import FCN_ResNet50_Weights, fcn_resnet50
-import numpy as np
-import utils
 from models.ifOpened import ifOpenedModel
 from models.pupilDetectModel import pupilSegmentationModel
 from models.trainers import PupilSegmentationTrainer, IfOpenedTrainer
-from visualization.visualise_pupil import draw_normal_vectors_2D
 
 # ======================================================================
 # TRAINING OF CNNS =====================================================
@@ -60,10 +54,6 @@ dataset_5 = PupilCoreDatasetTraining(
 ultimate_dataset = torch.utils.data.ConcatDataset(
     [dataset_1, dataset_2, dataset_3, dataset_4, dataset_5]
 )
-# dataset.load_masks(
-#     "datasets/PupilCoreDataset/created_masks/eye0",
-#     "datasets/PupilCoreDataset/created_masks/eye1",
-# )
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 ifOpenedModel = ifOpenedModel()
@@ -79,8 +69,8 @@ pupil_trainer = PupilSegmentationTrainer(
     weights_path="models/weights/resnet50.pt",
 )
 
-# if_opened_trainer.train(device=device, num_epochs=5)
-# if_opened_trainer.eval_model(device=device)
+if_opened_trainer.train(device=device, num_epochs=5)
+if_opened_trainer.eval_model(device=device)
 
 pupil_trainer.train(device=device, num_epochs=3)
 pupil_trainer.eval_model(device=device)

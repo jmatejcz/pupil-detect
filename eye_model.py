@@ -5,7 +5,6 @@ from utils import (
     projection,
     calc_angle_between_2D_vectors,
 )
-from exceptions import NoIntersection
 import numpy as np
 
 
@@ -147,7 +146,7 @@ class EyeModeling:
 
         return filtered_disc_normals, filtered_disc_centers
 
-    def sphere_radius_estimate(self):
+    def sphere_radius_estimate(self, fixed: bool = False):
         """
         README.txt -> SPHERE RADIUS ESTIMATE
         Now we can discard 1 of 2 solutions for normal vector and center
@@ -155,30 +154,32 @@ class EyeModeling:
         Then we can calculate intersection between (camera_vertex, p)
         and (c,p) to estimate sphere radius
         """
-        (
-            self.filtered_disc_normals,
-            self.filtered_disc_centers,
-        ) = self.filter_vectors_towards_center(self.disc_normals, self.disc_centers)
+        if not fixed:
+            (
+                self.filtered_disc_normals,
+                self.filtered_disc_centers,
+            ) = self.filter_vectors_towards_center(self.disc_normals, self.disc_centers)
 
-        # now we can calculate intersection
-        # we take mean from all intersections
-        radiuses = []
-        for i in range(len(self.filtered_disc_normals)):
-            vectors = [
-                self.filtered_disc_normals[i],
-                self.filtered_disc_centers[i]
-                / np.linalg.norm(self.filtered_disc_centers[i]),
-            ]
-            # [0, 0, 0] is origin so disc center can also be vector to itself
-            # centers = [self.estimated_eye_center_3D, self.filtered_disc_centers[i]]
-            centers = [self.estimated_eye_center_3D, np.array([0, 0, 0])]
-            p = calc_intersection(vectors, centers)
+            # now we can calculate intersection
+            # we take mean from all intersections
+            radiuses = []
+            for i in range(len(self.filtered_disc_normals)):
+                vectors = [
+                    self.filtered_disc_normals[i],
+                    self.filtered_disc_centers[i]
+                    / np.linalg.norm(self.filtered_disc_centers[i]),
+                ]
+                # [0, 0, 0] is origin so disc center can also be vector to itself
+                # centers = [self.estimated_eye_center_3D, self.filtered_disc_centers[i]]
+                centers = [self.estimated_eye_center_3D, np.array([0, 0, 0])]
+                p = calc_intersection(vectors, centers)
 
-            radiuses.append(np.linalg.norm(p - self.estimated_eye_center_3D))
+                radiuses.append(np.linalg.norm(p - self.estimated_eye_center_3D))
 
-        # self.estimated_sphere_radius = np.mean(radiuses)
-        self.estimated_sphere_radius = 10.5 * 166.95652173913044
-        return np.mean(radiuses)
+            self.estimated_sphere_radius = np.mean(radiuses)
+        else:
+            self.estimated_sphere_radius = 10.5 * 166.95652173913044
+        return self.estimated_sphere_radius
 
     def consistent_pupil_estimate(self, pupil_pos):
         """

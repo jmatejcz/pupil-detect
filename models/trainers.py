@@ -3,10 +3,8 @@ import copy
 import numpy as np
 from datasets.utils import get_dataloaders
 from datasets.PupilCoreDatasetPupil import PupilCoreDataset
-import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from visualization.visualise_pupil import draw_ellipse
 
 
 class PupilSegmentationTrainer:

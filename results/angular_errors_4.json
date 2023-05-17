@@ -1,1 +1,76 @@
-{"Right_eye": [{"0": {"mean_right_eye_angular_error": 3.6787477672335407}}, {"1": {"mean_right_eye_angular_error": 3.7887327820418957}}, {"2": {"mean_right_eye_angular_error": 3.4352033501348274}}, {"3": {"mean_right_eye_angular_error": 3.486284740536293}}, {"4": {"mean_right_eye_angular_error": 4.8519864007454965}}, {"5": {"mean_right_eye_angular_error": 5.240048197299196}}, {"6": {"mean_right_eye_angular_error": 8.399686892720196}}, {"7": {"mean_right_eye_angular_error": 5.993964537614471}}, {"8": {"mean_right_eye_angular_error": 4.708435098366314}}], "Left_eye": [{"0": {"mean_left_eye_angular_error": 3.7949698516344488}}, {"1": {"mean_left_eye_angular_error": 3.781778446787241}}, {"2": {"mean_left_eye_angular_error": 3.4372102834504963}}, {"3": {"mean_left_eye_angular_error": 3.490325328542471}}, {"4": {"mean_left_eye_angular_error": 3.8500344638469803}}, {"5": {"mean_left_eye_angular_error": 3.4941922842317794}}, {"6": {"mean_left_eye_angular_error": 3.8103263856480907}}, {"7": {"mean_left_eye_angular_error": 3.824419699201625}}, {"8": {"mean_left_eye_angular_error": 3.452439186705616}}]}
+{
+  "Right_eye": [
+    {
+      "0": {
+        "mean_right_eye_angular_error": 3.445623865514606
+      }
+    },
+    {
+      "1": {
+        "mean_right_eye_angular_error": 3.7828145814000025
+      }
+    },
+    {
+      "2": {
+        "mean_right_eye_angular_error": 3.439745690901293
+      }
+    },
+    {
+      "3": {
+        "mean_right_eye_angular_error": 3.483756137177717
+      }
+    },
+    {
+      "4": {
+        "mean_right_eye_angular_error": 3.841632465164466
+      }
+    },
+    {
+      "5": {
+        "mean_right_eye_angular_error": 3.481034189168719
+      }
+    },
+    {
+      "6": {
+        "mean_right_eye_angular_error": 3.439044670083035
+      }
+    }
+  ],
+  "Left_eye": [
+    {
+      "0": {
+        "mean_left_eye_angular_error": 4.098884764842579
+      }
+    },
+    {
+      "1": {
+        "mean_left_eye_angular_error": 4.002401672241426
+      }
+    },
+    {
+      "2": {
+        "mean_left_eye_angular_error": 8.439806105782424
+      }
+    },
+    {
+      "3": {
+        "mean_left_eye_angular_error": 3.522889347240647
+      }
+    },
+    {
+      "4": {
+        "mean_left_eye_angular_error": 3.842446131192097
+      }
+    },
+    {
+      "5": {
+        "mean_left_eye_angular_error": 3.485466182611636
+      }
+    },
+    {
+      "6": {
+        "mean_left_eye_angular_error": 3.447908979249655
+      }
+    }
+  ]
+}
